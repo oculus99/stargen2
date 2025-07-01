@@ -1,3 +1,26 @@
+This is based on stargen.
+
+Soma command line options added_
+
+
+that has default values
+
+--gasdust 50
+--density 1
+--migrate 1
+
+you can use them
+
+--gasdust 0
+--density 2
+--migrate 0.1
+
+to produce more stony planets nearer to star!
+
+Credits for original developers of StaGen!
+
+
+
 Welcome to StarGen. 
 
 StarGen is a a random solar system generator, derived from the work of a
