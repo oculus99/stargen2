@@ -1,0 +1,9 @@
+you can use starneg like this "./stargen -s --migrate 0.1 --density 0.1 --gasdust 70"
+
+  --migrate: planet distance coefficient, simple migration
+--density dust density coefficient
+--gasdust gas to dust ratio
+
+
+
+  
