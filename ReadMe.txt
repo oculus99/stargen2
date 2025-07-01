@@ -1,13 +1,26 @@
 This is based on stargen.
 
-Soma command line options added_
-
+Some command line options i has added. With them you can modify significantly output of stargen.
 
 that has default values
 
 --gasdust 50
 --density 1
---migrate 1
+--cloud_eccentricity 0.15
+--alpha 5
+--gamma 3
+--nearest 0.3
+--farthest 50.0
+--diskradius 200
+--beta 1.2e-5 
+
+--migrate 1 ## only simple, but effect planet post-formation migration coefficient
+
+and very experimental, not guaranteed
+filter extra planets out, buggy!
+
+--filterperiod 1.5
+--filterhill 3
 
 you can use them
 
