@@ -6,7 +6,7 @@
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.13 2008/12/30 23:15:13 brons Exp $
+ *	$Id: main.c,v 1.13 2008/12/30 23:15:13 brons Exp $ v0001
  */
 
 #include	<stdio.h>
@@ -57,7 +57,7 @@ int USE_HILL = 1;         // Set to 1 to use Hill criterion, 0 for Orbital Perio
 
 // some basic params of cloud
 extern long double dust_density_coeff; //2e-3
-extern long double	cloud_eccentricity; //0.2
+extern long double cloud_eccentricity; //0.2
 extern long double nearestk; //0.3
 extern long double farthestk; // 50
 extern long double diskradiusk; // 200 
@@ -267,7 +267,160 @@ int main (int argc, char *argv[])
                         }
                     } 
 
-             else {
+            else if (strcmp(argv[0], "--filterhill") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            BHILL_CRITERION =(double)dabuffer;
+                            printf(" migration coefficient %f",  migratek);
+                            //double dust_density_coeff2=1.0;
+                
+                            USE_FILTERING = 1;
+                            FILTER_ASTEROIDS = 0; // Set to 1 to remove asteroids, 0 to keep them
+                            USE_HILL = 1;         // Set to 1 to use Hill criterion, 0 for Orbital Perio
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+            else if (strcmp(argv[0], "--filterperiod") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            BHILL_CRITERION =(double)dabuffer;
+                            printf(" migration coefficient %f",  migratek);
+                            //double dust_density_coeff2=1.0;
+                
+                            USE_FILTERING = 1;
+                            FILTER_ASTEROIDS = 0; // Set to 1 to remove asteroids, 0 to keep them
+                            USE_HILL = 0;         // Set to 1 to use Hill criterion, 0 for Orbital Perio
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+  
+            else if (strcmp(argv[0], "--alpha") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            alphaa=(long double)dabuffer;
+                            printf(" alpha coeff  %f",  alphaa);
+                            //double dust_density_coeff2=1.0;
+                
+
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+
+            else if (strcmp(argv[0], "--gamma") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            gammaa=(long double)dabuffer;
+                            printf(" gamma coeff  %f", gammaa);
+                            //double dust_density_coeff2=1.0;
+                
+
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+   
+         else if (strcmp(argv[0], "--nearest") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            nearestk=(long double)dabuffer;
+                            printf(" nearest planet  %f", nearestk);
+                            //double dust_density_coeff2=1.0;
+                
+
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+         else if (strcmp(argv[0], "--farthest") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            farthestk=(long double)dabuffer;
+                            printf(" farthest planet  %f", farthestk);
+                            //double dust_density_coeff2=1.0;
+                
+
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+         else if (strcmp(argv[0], "--diskradius") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            diskradiusk=(long double)dabuffer;
+                            printf(" dust disk radius  %f", diskradiusk);
+                            //double dust_density_coeff2=1.0;
+                
+
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+         else if (strcmp(argv[0], "--cloud_eccentricity") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            cloud_eccentricity=(long double)dabuffer;
+                            printf(" cloud eccentricity %f", cloud_eccentricity);
+                            //double dust_density_coeff2=1.0;
+                
+
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+
+         else if (strcmp(argv[0], "--beta") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            bee=(long double)dabuffer;
+                            printf(" beta - critical mass param %f", bee);
+                            //double dust_density_coeff2=1.0;
+                
+
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+
+           else {
                         use_stdout = 1;  // "--" ilman muuta tarkastelua
                     }      
 
@@ -286,75 +439,8 @@ int main (int argc, char *argv[])
 				break;
 			}
 		
-	case 'X':	// JN post-formation simple migration
-			{
-				//double	m;	// gnu C doesn't like to scanf long doubles
-                double miggu=1.0;       
-
-               //printf(">%s<", ++c);
-
-				sscanf (++c, "%lf", &miggu);
-                migratek=(double)miggu;
-       //     printf("%f", miggu);         
-     //  printf("%f", migratek);
-         //      exit(-1);
-				//mass_arg = m;
-				//++c;
-               // migratek=atof(c);
-
-				skip = TRUE;
-				break;
-			}
-
-	case 'Y':	// JN jn post-formation filter planets out
-			{
-				//double	m;	// gnu C doesn't like to scanf long doubles
-                double aiggu=1.0;
-               //printf(">%s<", ++c);
-
-				sscanf (++c, "%lf", &aiggu);
-
-                USE_FILTERING = 1;
 
 
-                 BHILL_CRITERION = aiggu; // eikä long double
-
-               FILTER_ASTEROIDS = 0; // Set to 1 to remove asteroids, 0 to keep them
-               USE_HILL = 1;         // Set to 1 to use Hill criterion, 0 for Orbital Period
-
-
-
-				skip = TRUE;
-				break;
-			}
-
-	case 'K':	// JN jn post-formation filter planets out
-			{
-				//double	m;	// gnu C doesn't like to scanf long doubles
-                double biggu=1.0;
-                char cee2=*++c;
-                printf(">%c<", cee2);
-               //printf(">%s<", ++c);
-
-				sscanf (++c, "%lf", &biggu);
-
-                printf("K");
-               // exit(-1);
-                if(cee2=='z')
-                {
-                gasdust=biggu;
-                printf("\ngasdust %lf", gasdust);
-                }
-                if(cee2=='d')
-                {
-   
-                dust_density_coeff2=biggu;
-                dust_density_coeff=DUST_DENSITY_COEFF* dust_density_coeff2;
-                printf("\ndust_density_coeff2 %lf", dust_density_coeff2);
-                }
-			    skip = TRUE;
-				break;
-			}
 
 
 
