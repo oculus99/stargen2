@@ -1654,9 +1654,9 @@ void html_describe_system(planet_pointer 	innermost_planet,
 				"\t<td><a href='#%d'>%d</a></td>\n"
 				"\t<td align=center><img alt='%s' src='%sref/%s.gif'></td>\n"
 				"\t<td colspan=2>%s</td>\n"
-				"\t<td>%7.3Lf  AU</td>\n"
-				"\t<td>%8.3Lf EM</td>\n"
-				"\t<td>%8.3Lf ER</td>"
+				"\t<td>%7.4Lf  AU</td>\n"
+				"\t<td>%8.4Lf EM</td>\n"
+				"\t<td>%8.4Lf ER</td>"
 				"</tr>\n",
 				counter, counter, 
 			    typeString, 
@@ -1678,9 +1678,9 @@ void html_describe_system(planet_pointer 	innermost_planet,
 					"\t<td align=center><a href='#%d.%d'>%d.%d</a></td>\n"
 					"\t<td align=center><img alt='%s' src='%sref/%s.gif'></td>\n"
 					"\t<td>%s</td>\n"
-					"\t<td>%7.3Lf  AU</td>\n"
-					"\t<td>%8.3Lf EM</td>\n"
-					"\t<td>%8.3Lf ER</td>"
+					"\t<td>%7.4Lf  AU</td>\n"
+					"\t<td>%8.4Lf EM</td>\n"
+					"\t<td>%8.4Lf ER</td>"
 					"</tr>\n",
 					counter, moons, counter, moons, 
 					typeString, 

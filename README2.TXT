@@ -29,10 +29,9 @@
   [--filterperiod]    
 
 
-
 --disk_type
 
-0 normal . classic Dole-style disk
+0 normal , classic Dole-style disk
 
 
 1 exponent distribution disk
@@ -48,10 +47,10 @@
  
   --disk_type 2 use with alpha ang gamma
   
-   stargen --disk-type 2--alpha 5.0 --gamma 1.0
+   stargen --disk-type 2 --alpha 5.0 --gamma 1.0
    
    where alpha is standard deviation, "sigma"
-   and gamam is mean location "myy"
+   and gamma is mean location "mu"
    
    
  

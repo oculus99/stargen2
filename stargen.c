@@ -65,8 +65,9 @@ long double gasdust=50; // doles 50, sun 70 ?
 long double bee=B; // critical mass coeff
 
 //long double sun_mass_lower=0.065;
-long double sun_mass_lower=0.001;
-long double sun_mass_upper=10.0;
+//long double sun_mass_lower=10.0;
+long double sun_mass_lower=1e-6; // very low mass!
+long double sun_mass_upper=100.0; // very big mass!
 
 
 int flag_verbose = 0;
@@ -447,21 +448,23 @@ generate_planets(sun,
     if(USE_FILTERING==1)
     {
 
-    printf("Initial number of planets (before filtering): ");
+    printf("\n Initial number of planets (before filtering): ");
     planet_pointer temp_ptr = innermost_planet;
     int initial_count = 0;
 
     while(temp_ptr != NULL) {
         initial_count++;
 
-        printf("\nBBB");
+        //printf("\nBBB");
         printf("\n%lf", (double)temp_ptr->a);
         printf("\n%lf", (double)temp_ptr->mass);   
      temp_ptr = temp_ptr->next_planet;
-
+        
     }
-    printf("%d\n", initial_count);
+   
 
+ printf("\n is %i\n", initial_count);
+   
 //exit(-1);
 
 
@@ -2151,7 +2154,14 @@ planet_pointer create_new_planet(int p_no, long double p_a, long double p_mass, 
     return new_planet;
 }
 
+int compare_planets_by_a(const void* a, const void* b) {
+    const planet_pointer p1 = *(const planet_pointer*)a;
+    const planet_pointer p2 = *(const planet_pointer*)b;
 
+    if (p1->a < p2->a) return -1;
+    if (p1->a > p2->a) return 1;
+    return 0;
+}
 // Comparison function for sorting planets by mass in descending order
 int compare_planets_by_mass(const void* a, const void* b) {
     planet_pointer p1 = *(planet_pointer*)a;
@@ -2220,6 +2230,18 @@ void free_planet_array(planet_pointer* arr) {
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * @brief Filters planets based on stability criteria (Hill sphere or orbital period).
  *
@@ -2234,299 +2256,192 @@ void free_planet_array(planet_pointer* arr) {
  * @param use_hill_criterion If TRUE, uses the Hill sphere criterion. If FALSE, uses the orbital period criterion.
  * @return The head of the new, filtered linked list of planets. Returns NULL if no planets remain or on error.
  */
+
 planet_pointer filter_planets(planet_pointer innermost_planet, long double bhill, int filter_asteroids, int use_hill_criterion) {
-    if (innermost_planet == NULL) {
-        printf("No planets to filter. Returning NULL.\n");
-        return NULL;
-    }
+    if (innermost_planet == NULL) return NULL;
 
     int num_planets = 0;
     planet_pointer* planet_array = linked_list_to_array(innermost_planet, &num_planets);
+    if (planet_array == NULL || num_planets == 0) return NULL;
 
-    printf("\n--- Planets (before sorting, as received) ---\n");
-    planet_pointer temp_current = innermost_planet;
-    int original_idx = 0;
-    while(temp_current != NULL) {
-        printf("  Original Index %d (Planet %d): a = %.6Lf AU, mass = %.6e solar, type = %d\n",
-               original_idx++, temp_current->planet_no, temp_current->a, temp_current->mass, temp_current->type);
-        temp_current = temp_current->next_planet;
-    }
-    printf("--------------------------------------------\n");
+    // Lajitellaan planeetat pienimmästä suurimpaan puolisuuresta a (etäisyys tähdestä)
+    qsort(planet_array, num_planets, sizeof(planet_pointer), compare_planets_by_a);
 
-
-    if (num_planets == 0 || planet_array == NULL) {
-        free_planet_array(planet_array);
-        printf("No planets found or array conversion failed. Returning NULL.\n");
+    int* removed = (int*)calloc(num_planets, sizeof(int));
+    if (!removed) {
+        free(planet_array);
         return NULL;
     }
 
-    // Sort planets by mass in descending order
-    qsort(planet_array, num_planets, sizeof(planet_pointer), compare_planets_by_mass);
+    int changes;
+    do {
+        changes = 0;
+        for (int i = 0; i < num_planets; ++i) {
+            if (removed[i]) continue;
+            for (int j = i + 1; j < num_planets; ++j) {
+                if (removed[j]) continue;
 
-    // Debug print after sort (should show consistent, sorted values)
-    printf("\n--- Sorted planets (after qsort, descending mass) ---\n");
-    for (int n = 0; n < num_planets; n++) {
-        if (planet_array[n] != NULL) {
-            printf("  Sorted Index %d (Original Planet %d): a = %.6Lf AU, mass = %.6e solar, type = %d\n",
-                   n, planet_array[n]->planet_no, planet_array[n]->a, planet_array[n]->mass, planet_array[n]->type);
-        } else {
-            printf("  Sorted Index %d: NULL planet pointer\n", n);
-        }
-    }
-    printf("------------------------------------\n");
+                planet_pointer p1 = planet_array[i];
+                planet_pointer p2 = planet_array[j];
 
+                int remove_idx = -1;
 
-    planet_pointer filtered_head = NULL;
-    planet_pointer filtered_tail = NULL;
+                if (use_hill_criterion) {
+                    long double rh1 = calculate_hill_radius(p1, p1->sun);
+                    long double rh2 = calculate_hill_radius(p2, p2->sun);
+                    long double separation = fabsl(p1->a - p2->a);
+                    long double limit = bhill * (rh1 + rh2);
 
-    int* to_remove = (int*)calloc(num_planets, sizeof(int));
-    if (to_remove == NULL) {
-        fprintf(stderr, "ERROR: Memory allocation failed for to_remove array in filter_planets.\n");
-        free_planet_array(planet_array);
-        return NULL;
-    }
-
-    printf("\nStarting planet filtering with bhill = %.2Lf...\n", bhill);
-
-    for (int i = 0; i < num_planets; i++) {
-        planet_pointer current_planet = planet_array[i];
-        if (current_planet == NULL || to_remove[i]) {
-            continue; // Skip if already removed or NULL
-        }
-
-        // --- Handle zero-mass planets explicitly ---
-        if (current_planet->mass <= LDBL_EPSILON) {
-            to_remove[i] = 1;
-            printf("  ACTION: Removing planet %d (mass: %.2e solar, a: %.2Lf AU) - effectively zero mass. Will not participate in further comparisons.\n",
-                   current_planet->planet_no, current_planet->mass, current_planet->a);
-            continue; // Skip further checks for this planet as it's already marked for removal
-        }
-
-        // --- Handle asteroid filtering ---
-        long double current_planet_mass_earth = current_planet->mass * SOLAR_MASS_IN_EARTH_MASSES;
-        if (filter_asteroids && current_planet_mass_earth < ASTEROID_MASS_THRESHOLD) {
-            to_remove[i] = 1;
-            printf("  ACTION: Removing planet %d (mass: %.2e Earth masses, type: %d) - classified as asteroid. Will not participate in further comparisons.\n",
-                   current_planet->planet_no, current_planet_mass_earth, current_planet->type);
-            continue; // Skip further checks for this planet as it's already marked for removal
-        }
-
-        // --- Pairwise stability comparison ---
-        for (int j = 0; j < num_planets; j++) {
-            if (i == j || to_remove[j]) { // Skip self-comparison or already removed planets
-                continue;
-            }
-
-            planet_pointer other_planet = planet_array[j];
-            if (other_planet == NULL) {
-                fprintf(stderr, "WARNING: NULL planet pointer encountered during pairwise comparison (other_planet) at index %d. Skipping.\n", j);
-                continue;
-            }
-
-            // This condition ensures that 'current_planet' is always the more massive one
-            // (or comes first if masses are equal) that is doing the "checking" against 'other_planet'.
-            // If current_planet is less massive than other_planet, we skip this specific pair comparison.
-            // This means the more massive planet (which would be 'other_planet' in this case) will handle the check
-            // when it becomes the 'current_planet' in a later outer loop iteration.
-            if (current_planet->mass < other_planet->mass - LDBL_EPSILON || // current is strictly less massive
-                (fabsl(current_planet->mass - other_planet->mass) < LDBL_EPSILON && i > j)) { // masses equal, but current is later in sorted array
-                continue;
-            }
-
-            // At this point, current_planet is guaranteed to be more massive than or equal to other_planet,
-            // and if equal, current_planet appeared earlier in the sorted array.
-            // Therefore, if a conflict occurs, 'other_planet' (the less massive/later one) will be removed.
-
-            printf("\n  COMPARING: Current Planet %d (Mass: %.2e solar, a: %.2Lf AU) vs Other Planet %d (Mass: %.2e solar, a: %.2Lf AU)\n",
-                   current_planet->planet_no, current_planet->mass, current_planet->a,
-                   other_planet->planet_no, other_planet->mass, other_planet->a);
-
-
-            if (use_hill_criterion) {
-                long double rh1 = calculate_hill_radius(current_planet, current_planet->sun);
-                long double rh2 = calculate_hill_radius(other_planet, other_planet->sun);
-
-                if (rh1 <= LDBL_EPSILON && rh2 <= LDBL_EPSILON) {
-                    fprintf(stderr, "DEBUG: Both Hill radii are effectively zero for Planet %d and %d. Skipping comparison.\n", current_planet->planet_no, other_planet->planet_no);
-                    continue;
-                }
-
-                long double min_separation = bhill * (rh1 + rh2);
-                long double actual_separation = fabsl(current_planet->a - other_planet->a);
-
-                printf("    Hill Radii: Current=%.6Lf AU, Other=%.6Lf AU. Min Separation required: %.6Lf AU. Actual Separation: %.6Lf AU.\n",
-                       rh1, rh2, min_separation, actual_separation);
-
-                if (actual_separation < min_separation - LDBL_EPSILON) {
-                    to_remove[j] = 1; // Mark the 'other_planet' (the less massive one) for removal
-                    printf("    ACTION: Removing planet %d (Mass: %.2e solar, a: %.2Lf AU) due to Hill violation with planet %d.\n",
-                           other_planet->planet_no, other_planet->mass, other_planet->a, current_planet->planet_no);
+                    if (separation < limit) {
+                        remove_idx = (p1->mass < p2->mass) ? i : j;
+                    }
                 } else {
-                    printf("    RESULT: Planets %d and %d are stable by Hill criterion.\n", current_planet->planet_no, other_planet->planet_no);
+                    if (p1->orb_period <= LDBL_EPSILON || p2->orb_period <= LDBL_EPSILON) continue;
+
+                    long double ratio = p1->orb_period / p2->orb_period;
+                    if (ratio < 1.0L) ratio = 1.0L / ratio;
+
+                    if (ratio < bhill) {
+                        remove_idx = (p1->mass < p2->mass) ? i : j;
+                    }
+                }
+
+                if (remove_idx >= 0) {
+                    removed[remove_idx] = 1;
+                    changes++;
+                    break; // aloitetaan uusi kierros heti kun jokin planeetta poistetaan
                 }
             }
-            else { // Orbital Period Criterion
-                if (other_planet->orb_period <= LDBL_EPSILON) {
-                    fprintf(stderr, "WARNING: Planet %d has effectively zero orbital period. Skipping period ratio comparison.\n", other_planet->planet_no);
-                    continue;
-                }
-                if (current_planet->orb_period <= LDBL_EPSILON) {
-                     fprintf(stderr, "WARNING: Planet %d has effectively zero orbital period. Skipping period ratio comparison.\n", current_planet->planet_no);
-                    continue;
-                }
-
-                long double period_ratio = current_planet->orb_period / other_planet->orb_period;
-
-                printf("    Orbital Periods: Current=%.2Lf days, Other=%.2Lf days. Period Ratio (Current/Other): %.6Lf.\n",
-                       current_planet->orb_period, other_planet->orb_period, period_ratio);
-
-                if (fabsl(period_ratio - 1.0L) < (1.0L / bhill) - LDBL_EPSILON) {
-                    to_remove[j] = 1;
-                    printf("    ACTION: Removing planet %d (Mass: %.2e solar, Period: %.2Lf days) due to close orbital period to planet %d.\n",
-                           other_planet->planet_no, other_planet->mass, other_planet->orb_period, current_planet->planet_no);
-                } else {
-                    printf("    RESULT: Planets %d and %d are stable by Period criterion.\n", current_planet->planet_no, other_planet->planet_no);
-                }
-            }
+            if (changes > 0) break; // ulommasta loopista pois
         }
-    }
+    } while (changes > 0);
 
-    // Reconstruct the linked list with the remaining planets
-    // We now iterate through the original array to preserve the order relative to each other,
-    // only linking those not marked for removal.
-    filtered_head = NULL;
-    filtered_tail = NULL;
-    for (int i = 0; i < num_planets; i++) {
-        if (!to_remove[i] && planet_array[i] != NULL) {
-            if (filtered_head == NULL) {
-                filtered_head = planet_array[i];
-                filtered_tail = planet_array[i];
+    // Luo uusi lista jäljelle jääneistä planeetoista
+    planet_pointer new_head = NULL, new_tail = NULL;
+    for (int i = 0; i < num_planets; ++i) {
+        if (!removed[i]) {
+            if (!new_head) {
+                new_head = planet_array[i];
+                new_tail = planet_array[i];
             } else {
-                filtered_tail->next_planet = planet_array[i];
-                filtered_tail = planet_array[i];
+                new_tail->next_planet = planet_array[i];
+                new_tail = planet_array[i];
             }
-        } else if (to_remove[i] && planet_array[i] != NULL) {
-            printf("  Final decision: Planet %d (Original Index in sorted array: %d) removed from final list.\n", planet_array[i]->planet_no, i);
-            // If you need to *free* the memory for removed planets, you would do it here.
-            // Be extremely careful not to free memory that's still pointed to elsewhere or freed twice.
-            // Typically, the calling function (e.g., main or a system cleanup function) is responsible
-            // for freeing the individual planet structs once they are no longer part of any list.
-            // If you free here, the planet_pointer in the array becomes invalid!
-            // free(planet_array[i]); // DO NOT uncomment unless you are sure of memory ownership rules.
         }
     }
+    if (new_tail) new_tail->next_planet = NULL;
 
-    if (filtered_tail != NULL) {
-        filtered_tail->next_planet = NULL; // Terminate the new list
-    } else {
-        if (filtered_head == NULL && num_planets > 0) {
-            printf("All %d planets were removed during filtering.\n", num_planets);
+    free(removed);
+    free(planet_array);
+    return new_head;
+}
+
+#include <math.h>
+#include <stdio.h>
+#include <float.h>
+
+// Oletetaan, että planet_pointer on määritelty ja että calculate_hill_radius(planet, sun) on käytettävissä.
+
+planet_pointer shift_planets_to_resonances(
+    planet_pointer innermost_planet,
+    long double new_inner_a,
+    long double bhill,
+    int use_explicit_ratio,
+    long double explicit_ratio,
+    long double resomin,
+    long double resomax
+) {
+    if (innermost_planet == NULL) {
+        printf("No planets given for resonance shifting.\n");
+        return NULL;
+    }
+
+    // Muunna linkitetty lista taulukoksi helpompaan käsittelyyn
+    int num_planets = 0;
+    planet_pointer* planets = linked_list_to_array(innermost_planet, &num_planets);
+    if (planets == NULL || num_planets == 0) {
+        printf("No planets found or array conversion failed.\n");
+        return NULL;
+    }
+
+    // Järjestetään planeetat semimajor akselin mukaan pienimmästä suurimpaan (a)
+    int compare_planets_by_a(const void* p1, const void* p2) {
+        planet_pointer pl1 = *(planet_pointer*)p1;
+        planet_pointer pl2 = *(planet_pointer*)p2;
+        if (pl1->a < pl2->a) return -1;
+        if (pl1->a > pl2->a) return 1;
+        return 0;
+    }
+    qsort(planets, num_planets, sizeof(planet_pointer), compare_planets_by_a);
+
+    // Aseta ensimmäisen planeetan semi-major akseli
+    planets[0]->a = new_inner_a;
+
+    // Mahdolliset resonanssikertoimet, jos ei käytetä kiinteää ratioa
+    long double candidate_ratios[] = {4.0L/3.0L, 3.0L/2.0L, 5.0L/3.0L, 2.0L, 5.0L/2.0L, 3.0L};
+    int num_candidates = sizeof(candidate_ratios)/sizeof(candidate_ratios[0]);
+
+    for (int i = 1; i < num_planets; i++) {
+        long double prev_a = planets[i-1]->a;
+        long double chosen_a = 0.0L;
+        int found_valid = 0;
+
+        if (use_explicit_ratio) {
+            // Lasketaan uusi a kiinteällä suhteella
+            long double next_a = prev_a * powl(explicit_ratio, 2.0L/3.0L);
+
+            // Tarkistetaan hill-kriteeri
+            long double rh1 = calculate_hill_radius(planets[i-1], planets[i-1]->sun);
+            long double rh2 = calculate_hill_radius(planets[i], planets[i]->sun);
+            long double min_sep = bhill * (rh1 + rh2);
+            if (fabsl(next_a - prev_a) >= min_sep) {
+                chosen_a = next_a;
+                found_valid = 1;
+            } else {
+                printf("Planet %d: kiinteä resonanssi %.3Lf liian lähellä edellistä planeettaa, ei siirretä.\n", planets[i]->planet_no, explicit_ratio);
+                // jos ei mahtunut, asetetaan vähän kauemmas hill-kriteerillä
+                chosen_a = prev_a + min_sep;
+                found_valid = 1;
+            }
+        } else {
+            // Etsitään sopiva resonanssisuhde resomin - resomax väliltä
+            // Käydään candidate_ratios läpi ja valitaan ensimmäinen joka sopii ja on >= resomin ja <= resomax
+            for (int c = 0; c < num_candidates; c++) {
+                long double ratio = candidate_ratios[c];
+                if (ratio < resomin || ratio > resomax) continue;
+
+                long double next_a = prev_a * powl(ratio, 2.0L/3.0L);
+
+                long double rh1 = calculate_hill_radius(planets[i-1], planets[i-1]->sun);
+                long double rh2 = calculate_hill_radius(planets[i], planets[i]->sun);
+                long double min_sep = bhill * (rh1 + rh2);
+
+                if (fabsl(next_a - prev_a) >= min_sep) {
+                    chosen_a = next_a;
+                    found_valid = 1;
+                    break;
+                }
+            }
+
+            // Jos mikään resonanssi ei toimi hill-kriteerillä, asetetaan planeetta suoraan min_sep päähän
+            if (!found_valid) {
+                long double rh1 = calculate_hill_radius(planets[i-1], planets[i-1]->sun);
+                long double rh2 = calculate_hill_radius(planets[i], planets[i]->sun);
+                long double min_sep = bhill * (rh1 + rh2);
+                chosen_a = prev_a + min_sep;
+                found_valid = 1;
+                printf("Planet %d: resonanssia ei löydy hill-kriteerillä, asetetaan min_sep päähän.\n", planets[i]->planet_no);
+            }
         }
+
+        // Asetetaan planeetan uusi a
+        planets[i]->a = chosen_a;
     }
 
-    printf("Planet filtering complete.\n");
+    // Vapautetaan taulukko, mutta ei planeettoja itseään
+    free_planet_array(planets);
 
-    free(to_remove);
-    free_planet_array(planet_array); // Free the array itself, not the planet nodes
-    return filtered_head;
+    return innermost_planet;
 }
 
-// --- DEMONSTRATIVE EXAMPLE OF USAGE IN MAIN (ADAPT THIS TO YOUR STARGEN) ---
-/*
-// Compile with: gcc -o stargen_filter stargen_filter.c -lm
-int main() {
-    sun* current_star = (sun*)malloc(sizeof(sun));
-    if (current_star == NULL) {
-        fprintf(stderr, "Failed to allocate memory for sun.\n");
-        return 1;
-    }
-    current_star->mass = 1.0L; // Example: 1 solar mass star
-
-    planet_pointer head_planet = NULL;
-    planet_pointer tail_planet = NULL;
-
-    // Create planets and add them to the linked list
-    // THESE ARE EXAMPLE VALUES! Replace with your actual planet generation.
-    // Let's try to create a scenario where a large planet might be removed if the logic is faulty
-    // or if bhill is very strict and planets are very close.
-    planet_pointer p;
-
-    // Example planets:
-    // P0: Small, inner
-    p = create_new_planet(0, 0.30L, 0.0000001L, 0, 80.0L, current_star, tRock); // Very small, but not zero
-    if (p) { if (!head_planet) head_planet = p; else tail_planet->next_planet = p; tail_planet = p; }
-
-    // P1: Medium, inner, close to P0
-    p = create_new_planet(1, 0.35L, 0.000001L, 0, 95.0L, current_star, tTerrestrial);
-    if (p) { if (!head_planet) head_planet = p; else tail_planet->next_planet = p; tail_planet = p; }
-
-    // P2: Large Gas Giant, middle orbit
-    p = create_new_planet(2, 5.0L, 0.00095L, 1, 4000.0L, current_star, tGasGiant); // Jupiter-like mass
-    if (p) { if (!head_planet) head_planet = p; else tail_planet->next_planet = p; tail_planet = p; }
-
-    // P3: Another Large Gas Giant, very close to P2
-    p = create_new_planet(3, 5.2L, 0.00085L, 1, 4200.0L, current_star, tGasGiant); // Saturn-like mass, close to Jupiter-like
-    if (p) { if (!head_planet) head_planet = p; else tail_planet->next_planet = p; tail_planet = p; }
-
-    // P4: Small, outer
-    p = create_new_planet(4, 10.0L, 0.0000005L, 0, 10000.0L, current_star, tRock);
-    if (p) { if (!head_planet) head_planet = p; else tail_planet->next_planet = p; tail_planet = p; }
-
-    // P5: Another small, outer, very close to P4
-    p = create_new_planet(5, 10.05L, 0.00000001L, 0, 10050.0L, current_star, tRock); // Very small, close to P4
-    if (p) { if (!head_planet) head_planet = p; else tail_planet->next_planet = p; tail_planet = p; }
-
-    // P6: Zero mass planet (should be removed by explicit check)
-    p = create_new_planet(6, 20.0L, 0.0L, 0, 20000.0L, current_star, tUnknown);
-    if (p) { if (!head_planet) head_planet = p; else tail_planet->next_planet = p; tail_planet = p; }
-
-
-    printf("Initial number of planets (before filtering): ");
-    planet_pointer temp_ptr = head_planet;
-    int initial_count = 0;
-    while(temp_ptr != NULL) {
-        initial_count++;
-        temp_ptr = temp_ptr->next_planet;
-    }
-    printf("%d\n", initial_count);
-
-
-    // Call the filtering function
-    long double BHILL_CRITERION = 3.0L; // A more common stability criterion (2.0-5.0)
-    int FILTER_ASTEROIDS = 1; // Set to 1 to filter out planets below ASTEROID_MASS_THRESHOLD
-    int USE_HILL = 1; // Set to 1 to use Hill criterion, 0 for period criterion
-
-    planet_pointer filtered_planets = filter_planets(head_planet, BHILL_CRITERION, FILTER_ASTEROIDS, USE_HILL);
-
-    printf("\nNumber of planets after filtering: ");
-    int final_count = 0;
-    temp_ptr = filtered_planets;
-    while(temp_ptr != NULL) {
-        final_count++;
-        temp_ptr = temp_ptr->next_planet;
-    }
-    printf("%d\n", final_count);
-
-    printf("\n--- Final Filtered Planets ---\n");
-    temp_ptr = filtered_planets;
-    while(temp_ptr != NULL) {
-        printf("  Planet %d: a = %.6Lf AU, mass = %.6e solar, type = %d\n",
-               temp_ptr->planet_no, temp_ptr->a, temp_ptr->mass, temp_ptr->type);
-        temp_ptr = temp_ptr->next_planet;
-    }
-    printf("------------------------------\n");
-
-
-    // Free all planet memory (important to avoid memory leaks)
-    planet_pointer current = filtered_planets;
-    while (current != NULL) {
-        planet_pointer next = current->next_planet;
-        free(current);
-        current = next;
-    }
-    free(current_star); // Free the star as well
-
-    return 0;
-}
-*/
 
