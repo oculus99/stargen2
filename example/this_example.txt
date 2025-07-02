@@ -1,0 +1,1 @@
+./stargen -s -m0.1 --migrate 0.01 --discecc 0.05 --nearest 2
