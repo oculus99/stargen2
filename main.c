@@ -6,7 +6,7 @@
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.13.0004 2025/07/02 08.31 $ 
+ *	$Id: main.c,v 1.44.0005 2025/07/02 08.31 $ 
  */
 
 #include	<stdio.h>
@@ -152,6 +152,26 @@ void usage(char *prognam)
 					"\n"
 					"        Nearest stars taken from:\n"
 					"          http://www.solstation.com/stars.htm\n"
+					"\n\n Additional long options in this version, under development:\n\n"
+                    "    --gasdust <coeff> tex. --gasdust 50.0 gas per dust ratio \n Note: in long options you must precede space before value of parameter.\n"
+                    "    --density <coeff> default: 1.0 density of dust, relative to default value\n"
+                    "    --alpha <coeff> default: 5.0 dust density coeff alpha by Dole \n"
+                    "    --gamma <coeff> default: 3.0 dust density distribution coeff gamma by Dole\n"
+                    "    --beta <coeff> default: 1.2e-5 critical gas accretion mass  coefficient by Dole\n"
+                    "    --disk_type <int> default: 0, but can be 1 , 2 . \n With 1 you can set --alpha, with 2 you can set --alpha and --gamma , that are stdev and mean value of ring of surface density \n"
+                    "    --nearest <coeff> default: 0.3 distence of nearest planet AU, before possibly migration\n"
+                    "    --farthest <coeff> default: 50.0 farthest planet AU, unmigrated\n"
+                    "    --diskradius <coeff> default: 200.0 radius of dust disk AU\n"
+                    "    --cloud_eccentricity <coeff> default: 0.2 eccentricity of cloud, greater : fwer planets\n"
+                    "  \n"
+                    "    --migrate <coeff> default: 1.0, that is no post-formation migration. \n tex --migrate 0.1 moves planets inward by coefficient 0.1"
+                    "  \n"
+                    "  Planet filtering out due to orbital disturbances by mutual gravitation:\n"
+                    "  \n"
+                    "   --filterhill <coeff>, default off \n"
+                     "  --filterperiod <coeff> 2, default off "   
+                    "\n"
+
 					"\n"
 					"        StarGen: %s\n"
 					"\n",

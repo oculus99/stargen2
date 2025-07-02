@@ -431,10 +431,10 @@ void generate_stellar_system(sun*			sun,
 
 		sun->age = random_number(min_age, max_age);
 	}
-// JN debug
 
 
-generate_planets(sun,
+
+  generate_planets(sun,
 					 !use_seed_system, 
 					 flag_char,
 					 sys_no,
@@ -443,6 +443,31 @@ generate_planets(sun,
 					 do_moons);
 
 
+// JN debug
+
+
+
+   //planet->a=planet->a*migratek;
+
+   // int migraa=0;
+  
+   
+
+  
+    printf("\n Initial number of planets (before filtering): ");
+    planet_pointer temp_ptr0 = innermost_planet;
+    int initial_count = 0;
+
+    while(temp_ptr0 != NULL) {
+        initial_count++;
+        temp_ptr0->a=temp_ptr0->a*migratek;
+        //printf("\nBBB");
+    //    printf("\n%lf", (double)temp_ptr->a);
+     //   printf("\n%lf", (double)temp_ptr->mass);   
+        temp_ptr0 = temp_ptr0->next_planet;
+       
+    } 
+   
 
 
     if(USE_FILTERING==1)
@@ -450,14 +475,14 @@ generate_planets(sun,
 
     printf("\n Initial number of planets (before filtering): ");
     planet_pointer temp_ptr = innermost_planet;
-    int initial_count = 0;
+  //  int initial_count = 0;
 
     while(temp_ptr != NULL) {
         initial_count++;
 
         //printf("\nBBB");
-        printf("\n%lf", (double)temp_ptr->a);
-        printf("\n%lf", (double)temp_ptr->mass);   
+    //    printf("\n%lf", (double)temp_ptr->a);
+     //   printf("\n%lf", (double)temp_ptr->mass);   
      temp_ptr = temp_ptr->next_planet;
         
     }
@@ -687,7 +712,7 @@ void generate_planet(planet_pointer	planet,
 
 //jn debug
 
- planet->a=planet->a*migratek;
+// planet->a=planet->a*migratek;
 
 
 

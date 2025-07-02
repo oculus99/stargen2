@@ -1,57 +1,53 @@
+	fprintf(stderr, "Usage: %s [options] [system name]\n", prognam);
+	fprintf(stderr, "  Options:\n"
+					"    -s#  Set random number seed\n"
+					"    -m#  Specify stellar mass\n"
+					"    -n#  Specify number of systems\n"
+					"    -i#  Number to increment each seed by\n"
+					"    -x   Use the Solar System's masses/orbits\n"
+					"    -d   Use Dole's %d nearby stars\n"
+					"    -D#  Use Dole's system #n\n"
+					"    -w   Use %d nearby stars taken from the Web\n"
+					"    -W#  Use Web system #n\n"
+					"    -p   Specify the path for the output file\n"
+					"    -o   Output file name\n"
+					"    -t   Text-only output\n"
+					"    -v#  Set verbosity (hex value)\n"
+					"    -l   List nearby stars and exit\n"
+					"    -H   Output only systems with habitable planets\n"
+					"    -2   Only systems with 2 or more habitable planets\n"
+					"    -E   Only systems with earthlike planets\n"
+					"\n"
+					"  Experimental options (may go away):\n"
+					"    -c   Output Celestia .ssc file on stdout\n"
+					"    -e   Output Excel .csv file\n"
+					"    -V   Create vector graphics (SVG) system image\n"
+					"    -k   Incorporate known planets (incomplete)\n"
+					"          (use only orbital data at present)\n"
+					"          Without -k, -c skips systems with known planets.\n"
+					"    -g   Show atmospheric gases\n"
+					"    -Z   Dump tables used for gases and exit\n"
+					"    -M   Do moons (highly experimental)\n"
+					"\n"
+					"        Nearest stars taken from:\n"
+					"          http://www.solstation.com/stars.htm\n"
+					"\n\n Additional long options in this version, under development:\n\n"
+                    "    --gasdust <coeff> tex. --gasdust 50.0 gas per dust ratio \n Note: in long options you must precede space before value of parameter.\n"
+                    "    --density <coeff> default: 1.0 density of dust, relative to default value\n"
+                    "    --alpha <coeff> default: 5.0 dust density coeff alpha by Dole \n"
+                    "    --gamma <coeff> default: 3.0 dust density distribution coeff gamma by Dole\n"
+                    "    --beta <coeff> default: 1.2e-5 critical gas accretion mass  coefficient by Dole\n"
+                    "    --disk_type <int> default: 0, but can be 1 , 2 . \n With 1 you can set --alpha, with 2 you can set --alpha and --gamma , that are stdev and mean value of ring of surface density \n"
+                    "    --nearest <coeff> default: 0.3 distence of nearest planet AU, before possibly migration\n"
+                    "    --farthest <coeff> default: 50.0 farthest planet AU, unmigrated\n"
+                    "    --diskradius <coeff> default: 200.0 radius of dust disk AU\n"
+                    "    --cloud_eccentricity <coeff> default: 0.2 eccentricity of cloud, greater : fwer planets\n"
+                    "  \n"
+                    "    --migrate <coeff> default: 1.0, that is no post-formation migration. \n tex --migrate 0.1 moves planets inward by coefficient 0.1"
+                    "  \n"
+                    "  Planet filtering out due to orbital disturbances by mutual gravitation:\n"
+                    "  \n"
+                    "   --filterhill <coeff>, default off \n"
+                     "  --filterperiod <coeff> 2, default off "   
+                    "\n"
 
-
- New command line options added to starge to v2
-
- NOTE in long options, fcommand line
- format is like "stargen --gasdust 50". not "stargen --gasdust50"
- not parameter name and paremeter together, not as like in sort options -
- "stargen -s1"
-
- option default_value
- 
- stargen
-  --gasdust 50.0
-  --density 1.0
-  --alpha 5.0
-  --gamma 3.0
-  --beta 1.2e-5
-  --disk type 0 can be 1 , 2: 1
-  --nearest 0.3
-  --farthest 50.0
-  --diskradius 200
-  --cloud_eccentricity 0.2
-  
-  --migrate 1.0
-  
-  and untested, not OK:
-  
-  [--filterhill]
-  [--filterperiod]    
-
-
---disk_type
-
-0 normal , classic Dole-style disk
-
-
-1 exponent distribution disk
-
- --disk_type 1 use with alpha
- like this
- 
- stargen --disk-type 1 --alpha 4.0
- 
- 2: normal distribution disk, often "ring"
- 
- alpha is here surface density exponent
- 
-  --disk_type 2 use with alpha ang gamma
-  
-   stargen --disk-type 2 --alpha 5.0 --gamma 1.0
-   
-   where alpha is standard deviation, "sigma"
-   and gamma is mean location "mu"
-   
-   
- 
- 
