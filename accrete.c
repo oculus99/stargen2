@@ -4,6 +4,7 @@
 /*		a Computer Simulation"	October 1969,  Rand Corporation Paper	*/
 /*		P-4226.															*/
 /*----------------------------------------------------------------------*/
+// subv 2025 0002
 
 #include	<stdio.h>
 #include	<stdlib.h>
@@ -33,6 +34,10 @@ extern long double alphaa; // ALPHA 5?
 extern long double gammaa; // 
 extern long double gasdust; // K, 50
 extern long double bee;
+
+extern int use_exponent_disk; // use own disk surface density profile, alpha is exponent
+
+
 
 dust_pointer	dust_head	= NULL;
 planet_pointer	planet_head	= NULL;
@@ -651,6 +656,23 @@ planet_pointer dist_planetary_masses(long double stell_mass_ratio,
 			
 			dust_density = dust_density_coeff * sqrt(stell_mass_ratio)
 						   * exp(-alphaa * pow(a,(1.0 /gammaa)));
+
+        if(use_exponent_disk==1)
+            {
+			dust_density = dust_density_coeff * sqrt(stell_mass_ratio)*pow(a,(-1*alphaa));
+            }
+
+    if(use_exponent_disk==2)
+    {
+    double normalcoeff1=0.0;
+        // jn check this
+
+    normalcoeff1=(1.0 / (alphaa * sqrt(2 * M_PI))) * exp(-0.5 * pow((a - gammaa) / alphaa, 2));
+
+    dust_density = dust_density_coeff * sqrt(stell_mass_ratio)*normalcoeff1;
+
+    }
+
 			crit_mass = critical_limit(a,e,stell_luminosity_ratio);
 			accrete_dust(&mass, &dust_mass, &gas_mass,
 						 a,e,crit_mass,

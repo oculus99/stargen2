@@ -1,12 +1,12 @@
 /*
- *	StarGen Main Routine
+ *	StarGen Main Routine 
  *
  *	This file provides the main command-line interface to StarGen.
  *	Other platform-specific UIs can be created by duplicating its
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.13 2008/12/30 23:15:13 brons Exp $ v0001
+ *	$Id: main.c,v 1.13.0002 2025/07/02 08.31 $ 
  */
 
 #include	<stdio.h>
@@ -65,6 +65,8 @@ extern long double alphaa; // ALPHA 5?
 extern long double gammaa; // N 3?
 extern long double gasdust;
 extern long double bee;
+
+extern int use_exponent_disk; // use own disk surface density profile, alpha is exponent
 
 
 
@@ -419,6 +421,27 @@ int main (int argc, char *argv[])
                             skip=TRUE;
                         }
                     } 
+
+         else if (strcmp(argv[0], "--disk_type") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            //sscanf (argv[1], "%li", &dabuffer);
+                            //use_exponent_disk=(int)atoi(argv[1]);
+                             sscanf (argv[1], "%li", &use_exponent_disk);
+
+                            printf(" selected disc surface density profile  type %i", use_exponent_disk);
+                            //double dust_density_coeff2=1.0;
+                            //exit(-1);
+
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+
+
 
            else {
                         use_stdout = 1;  // "--" ilman muuta tarkastelua

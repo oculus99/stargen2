@@ -5,7 +5,7 @@
  *	An example of calling it is the command-line interface defined in
  *	main.c.
  *
- *	$Id: stargen.c,v 1.44 2025/07/01 15.13  $
+ *	$Id: stargen.c,v 1.44 2025/07/01 15.13  $ 0002
  *  original Id: stargen.c,v 1.43 2008/12/30 23:15:13 brons Exp 
  */
 
@@ -103,7 +103,7 @@ extern double BHILL_CRITERION;
 extern int FILTER_ASTEROIDS; // Set to 1 to remove asteroids, 0 to keep them
 extern int USE_HILL;         // Set to 1 to use Hill criterion, 0 for Orbital Period
 
-
+int use_exponent_disk=0; // use own disk surface density profile, alpha is exponent
 
 
 int earthlike		 = 0;
