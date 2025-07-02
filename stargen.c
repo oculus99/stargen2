@@ -64,6 +64,11 @@ long double gammaa=3.0; // N 3?
 long double gasdust=50; // doles 50, sun 70 ?
 long double bee=B; // critical mass coeff
 
+//long double sun_mass_lower=0.065;
+long double sun_mass_lower=0.001;
+long double sun_mass_upper=10.0;
+
+
 int flag_verbose = 0;
 // 0x0001			Earthlike count
 // 0x0002			Trace Min/max
@@ -384,8 +389,15 @@ void generate_stellar_system(sun*			sun,
 {
 	long double		outer_dust_limit;
 
-	if ((sun->mass < 0.2) || (sun->mass > 1.5))
-		sun->mass		 = random_number(0.7,1.4);
+//	if ((sun->mass < 0.2) || (sun->mass > 1.5))
+//		sun->mass		 = random_number(0.7,1.4);
+
+	if ((sun->mass < sun_mass_lower) || (sun->mass > sun_mass_upper))
+  {
+	//	sun->mass		 = random_number(0.7,1.4);
+// try generate quite sun like star
+	sun->mass		 = random_number(0.1,1.5);
+  }
 
 	outer_dust_limit	 = stellar_dust_limit(sun->mass);
 
@@ -1806,6 +1818,10 @@ int stargen (actions		action,
 			
 			type_count = 0;
 		}
+
+
+       // printf("\nsun mass %lf", (double)sun.mass);
+       // exit(-1);
 
 		generate_stellar_system(&sun,
 								use_seed_system, 
