@@ -152,17 +152,18 @@ void usage(char *prognam)
 					"\n"
 					"        Nearest stars taken from:\n"
 					"          http://www.solstation.com/stars.htm\n"
+                    "\n"
 					"\n\n Additional long options in this version, under development:\n\n"
                     "    --gasdust <coeff> tex. --gasdust 50.0 gas per dust ratio \n Note: in long options you must precede space before value of parameter.\n"
                     "    --density <coeff> default: 1.0 density of dust, relative to default value\n"
                     "    --alpha <coeff> default: 5.0 dust density coeff alpha by Dole \n"
                     "    --gamma <coeff> default: 3.0 dust density distribution coeff gamma by Dole\n"
                     "    --beta <coeff> default: 1.2e-5 critical gas accretion mass  coefficient by Dole\n"
-                    "    --disk_type <int> default: 0, but can be 1 , 2 . \n With 1 you can set --alpha, with 2 you can set --alpha and --gamma , that are stdev and mean value of ring of surface density \n"
+                    "    --disctype <int> default: 0, but can be 1 , 2 . \n With 1 you can set --alpha, with 2 you can set --alpha and --gamma , that are stdev and mean value of ring of surface density \n"
                     "    --nearest <coeff> default: 0.3 distence of nearest planet AU, before possibly migration\n"
                     "    --farthest <coeff> default: 50.0 farthest planet AU, unmigrated\n"
-                    "    --diskradius <coeff> default: 200.0 radius of dust disk AU\n"
-                    "    --cloud_eccentricity <coeff> default: 0.2 eccentricity of cloud, greater : fwer planets\n"
+                    "    --discradius <coeff> default: 200.0 radius of dust disk AU\n"
+                    "    --discecc <coeff> default: 0.2 eccentricity of cloud, greater : fwer planets\n"
                     "  \n"
                     "    --migrate <coeff> default: 1.0, that is no post-formation migration. \n tex --migrate 0.1 moves planets inward by coefficient 0.1"
                     "  \n"
@@ -392,7 +393,7 @@ int main (int argc, char *argv[])
                             skip=TRUE;
                         }
                     } 
-         else if (strcmp(argv[0], "--diskradius") == 0) {
+         else if (strcmp(argv[0], "--discradius") == 0) {
                         // Käsitellään '--gasdust 50' tyyppinen argumentti
                         if (argc > 1) {
                     
@@ -408,13 +409,13 @@ int main (int argc, char *argv[])
                             skip=TRUE;
                         }
                     } 
-         else if (strcmp(argv[0], "--cloud_eccentricity") == 0) {
+         else if (strcmp(argv[0], "--discecc") == 0) {
                         // Käsitellään '--gasdust 50' tyyppinen argumentti
                         if (argc > 1) {
                     
                             sscanf (argv[1], "%lf", &dabuffer);
                             cloud_eccentricity=(long double)dabuffer;
-                            printf(" cloud eccentricity %f", cloud_eccentricity);
+                            printf(" disc cloud eccentricity %f", cloud_eccentricity);
                             //double dust_density_coeff2=1.0;
                 
 
@@ -442,7 +443,7 @@ int main (int argc, char *argv[])
                         }
                     } 
 
-         else if (strcmp(argv[0], "--disk_type") == 0) {
+         else if (strcmp(argv[0], "--disctype") == 0) {
                         // Käsitellään '--gasdust 50' tyyppinen argumentti
                         if (argc > 1) {
                     

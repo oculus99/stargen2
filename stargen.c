@@ -454,7 +454,7 @@ void generate_stellar_system(sun*			sun,
    
 
   
-    printf("\n Initial number of planets (before filtering): ");
+   // printf("\n Initial number of planets (before filtering): ");
     planet_pointer temp_ptr0 = innermost_planet;
     int initial_count = 0;
 
@@ -473,7 +473,7 @@ void generate_stellar_system(sun*			sun,
     if(USE_FILTERING==1)
     {
 
-    printf("\n Initial number of planets (before filtering): ");
+
     planet_pointer temp_ptr = innermost_planet;
   //  int initial_count = 0;
 
@@ -487,7 +487,7 @@ void generate_stellar_system(sun*			sun,
         
     }
    
-
+ printf("\n Initial number of planets (before filtering): ");
  printf("\n is %i\n", initial_count);
    
 //exit(-1);
@@ -497,13 +497,14 @@ void generate_stellar_system(sun*			sun,
 seed_system = filter_planets(innermost_planet, (long double )BHILL_CRITERION, FILTER_ASTEROIDS, USE_HILL);
 
 
-printf("Number of planets after filtering: ");
+
 int final_count = 0;
 temp_ptr = innermost_planet;
 while(temp_ptr != NULL) {
     final_count++;
     temp_ptr = temp_ptr->next_planet;
 }
+printf("Number of planets after filtering: ");
 printf("%d\n", final_count);
 
 
