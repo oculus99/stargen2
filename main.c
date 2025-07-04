@@ -6,7 +6,7 @@
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.44.0007 2025/07/04 08.31 $ 
+ *	$Id: main.c,v 1.44.0008 2025/07/04 11.22 $ 
  */
 
 #include	<stdio.h>

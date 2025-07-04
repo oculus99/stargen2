@@ -48,6 +48,8 @@
 #include	"stargen.h"
 #include	"utils.h"
 
+
+
 char *	stargen_revision = "$Revision: 1.44.00 $";
 
 /*  These are the global variables used during accretion:  */
@@ -69,9 +71,9 @@ long double bee=B; // critical mass coeff
 long double sun_mass_lower=1e-6; // very low mass!
 long double sun_mass_upper=100.0; // very big mass!
 
-int order_to_resonances=1;
+int order_to_resonances=0;
 long double base_resonance=1.62;
-long double bhill=5.0;
+long double resonance_bhill=5.0;
 
 int use_own_luminosity=0;
 long double par_luminosity=1.0;
@@ -105,8 +107,9 @@ long flag_seed		 = 0;
 
 
 // jn debug
-planet_pointer filter_planets(planet_pointer seed_system, long double bhill, int filter_asteroids, int use_hill_criterion);
- 
+//planet_pointer filter_planets(planet_pointer seed_system, long double bhill, int filter_asteroids, int //use_hill_criterion);
+planet_pointer filter_planets(planet_pointer innermost_planet, long double bhill_remove, long double bhill_asteroid, int filter_asteroids, int use_hill_criterion) ;
+
 planet_pointer shift_planets_to_resonances(planet_pointer innermost_planet,long double new_inner_a,long double bhill,int use_explicit_ratio,long double explicit_ratio,long double resomin,long double resomax);
 
 // jn debug
@@ -515,8 +518,8 @@ void generate_stellar_system(sun*			sun,
 
 
 // Call the filtering subroutine
-seed_system = filter_planets(innermost_planet, (long double )BHILL_CRITERION, FILTER_ASTEROIDS, USE_HILL);
-
+//seed_system = filter_planets(innermost_planet, (long double )BHILL_CRITERION, FILTER_ASTEROIDS, USE_HILL);
+innermost_planet=filter_planets(innermost_planet, BHILL_CRITERION,2, FILTER_ASTEROIDS, USE_HILL) ;
 
 
 int final_count = 0;
@@ -529,6 +532,11 @@ printf("Number of planets after filtering: ");
 printf("%d\n", final_count);
 
 
+//exit(-1);
+
+}
+
+
  if(order_to_resonances==1)
     {
 // jn nok
@@ -536,21 +544,12 @@ printf("%d\n", final_count);
     // base_resonance;
     // innermost_planet->a;
  
-    innermost_planet= shift_planets_to_resonances(innermost_planet,innermost_planet->a/4,bhill,   1,base_resonance,1.111,4.0);
+    innermost_planet= shift_planets_to_resonances(innermost_planet,innermost_planet->a,resonance_bhill,   1,base_resonance,1.111,4.0);
 
 
 //planet_pointer shift_planets_to_resonances(planet_pointer innermost_planet,long double new_inner_a,long double bhill,int use_explicit_ratio,long double explicit_ratio,long double resomin,long double resomax);
 
     }
-
-
-
-//exit(-1);
-
-
-}
-
-
 
 
 
@@ -2217,6 +2216,10 @@ planet_pointer create_new_planet(int p_no, long double p_a, long double p_mass, 
     return new_planet;
 }
 
+long double orbital_period(long double a, long double sun_mass) {
+    return sqrtl(powl(a, 3) / sun_mass);  // palauttaa vuodet, jos a on AU ja massa aurinkomassoissa
+}
+
 int compare_planets_by_a(const void* a, const void* b) {
     const planet_pointer p1 = *(const planet_pointer*)a;
     const planet_pointer p2 = *(const planet_pointer*)b;
@@ -2296,38 +2299,19 @@ void free_planet_array(planet_pointer* arr) {
 
 
 
+// j jn jn
 
 
 
+planet_pointer filter_planets(planet_pointer innermost_planet, long double bhill_remove, long double bhill_asteroid, int filter_asteroids, int use_hill_criterion) {
 
-
-
-
-
-
-/**
- * @brief Filters planets based on stability criteria (Hill sphere or orbital period).
- *
- * This function takes a linked list of planets, sorts them by mass, and then
- * removes planets that violate either the Hill sphere criterion or a simplified
- * orbital period criterion. It prioritizes removing lighter planets.
- *
- * @param innermost_planet The head of the linked list of planets to filter.
- * @param bhill Multiplier for the Hill radius or orbital period. A higher value
- * enforces stricter separation/stability. Common values for Hill are 2.0-5.0.
- * @param filter_asteroids If TRUE, planets with mass < ASTEROID_MASS_THRESHOLD (1e-6 Earth masses) are removed.
- * @param use_hill_criterion If TRUE, uses the Hill sphere criterion. If FALSE, uses the orbital period criterion.
- * @return The head of the new, filtered linked list of planets. Returns NULL if no planets remain or on error.
- */
-
-planet_pointer filter_planets(planet_pointer innermost_planet, long double bhill, int filter_asteroids, int use_hill_criterion) {
+double SOLARIA_MASS=1.0;
     if (innermost_planet == NULL) return NULL;
 
     int num_planets = 0;
     planet_pointer* planet_array = linked_list_to_array(innermost_planet, &num_planets);
     if (planet_array == NULL || num_planets == 0) return NULL;
 
-    // Lajitellaan planeetat pienimmästä suurimpaan puolisuuresta a (etäisyys tähdestä)
     qsort(planet_array, num_planets, sizeof(planet_pointer), compare_planets_by_a);
 
     int* removed = (int*)calloc(num_planets, sizeof(int));
@@ -2347,35 +2331,55 @@ planet_pointer filter_planets(planet_pointer innermost_planet, long double bhill
                 planet_pointer p1 = planet_array[i];
                 planet_pointer p2 = planet_array[j];
 
+                long double rh1 = calculate_hill_radius(p1, p1->sun);
+                long double rh2 = calculate_hill_radius(p2, p2->sun);
+                long double separation = fabsl(p1->a - p2->a);
+                long double limit_remove = bhill_remove * (rh1 + rh2);
+                long double limit_asteroid = bhill_asteroid * (rh1 + rh2);
+
                 int remove_idx = -1;
 
                 if (use_hill_criterion) {
-                    long double rh1 = calculate_hill_radius(p1, p1->sun);
-                    long double rh2 = calculate_hill_radius(p2, p2->sun);
-                    long double separation = fabsl(p1->a - p2->a);
-                    long double limit = bhill * (rh1 + rh2);
-
-                    if (separation < limit) {
+                    if (separation < limit_remove) {
+                        // Poista pienempi ja tee asteroidi
                         remove_idx = (p1->mass < p2->mass) ? i : j;
-                    }
-                } else {
-                    if (p1->orb_period <= LDBL_EPSILON || p2->orb_period <= LDBL_EPSILON) continue;
 
-                    long double ratio = p1->orb_period / p2->orb_period;
-                    if (ratio < 1.0L) ratio = 1.0L / ratio;
+                        planet_pointer survivor = planet_array[(remove_idx == i) ? j : i];
 
-                    if (ratio < bhill) {
-                        remove_idx = (p1->mass < p2->mass) ? i : j;
+                        planet_array[remove_idx]->mass = 1e-12L * SOLARIA_MASS;
+                        planet_array[remove_idx]->a = (p1->a + p2->a) / 2.0L;
+                        planet_array[remove_idx]->type = tAsteroids;
+                        planet_array[remove_idx]->sun = survivor->sun;
+                        planet_array[remove_idx]->orb_period = orbital_period(planet_array[remove_idx]->a, planet_array[remove_idx]->sun->mass);
+                        removed[remove_idx] = 0;  // Merkitään asteroidiksi, ei poisteta
+
+                        changes++;
+                        break;
+                    } else if (separation < limit_asteroid) {
+                        // Tee vain uusi asteroidi (ei poistoa)
+                      //  planet_pointer new_asteroid = create_new_planet(); // sinun create-funktiosi
+                       
+planet_pointer new_asteroid=create_new_planet(num_planets, (p1->a + p2->a) / 2.0L, 1e-12L * SOLARIA_MASS, 0,  p1->orb_period, innermost_planet->sun, tAsteroids);
+
+
+ new_asteroid->mass = 1e-12L * SOLARIA_MASS;
+                        new_asteroid->a = (p1->a + p2->a) / 2.0L;
+                        new_asteroid->type = tAsteroids;
+                        new_asteroid->sun = p1->sun;
+                        new_asteroid->orb_period = orbital_period(new_asteroid->a, new_asteroid->sun->mass);
+                        new_asteroid->next_planet = NULL;
+
+                        // Lisää asteroidi array:in (realloc tarvittaessa)
+                        planet_array = realloc(planet_array, (num_planets + 1) * sizeof(planet_pointer));
+                        planet_array[num_planets++] = new_asteroid;
+
+                        changes++;
+                        break;
                     }
                 }
-
-                if (remove_idx >= 0) {
-                    removed[remove_idx] = 1;
-                    changes++;
-                    break; // aloitetaan uusi kierros heti kun jokin planeetta poistetaan
-                }
+                // Orbitaaliperiodikriteeri voidaan myös toteuttaa vastaavalla logiikalla jos haluat
             }
-            if (changes > 0) break; // ulommasta loopista pois
+            if (changes > 0) break;
         }
     } while (changes > 0);
 
@@ -2399,13 +2403,13 @@ planet_pointer filter_planets(planet_pointer innermost_planet, long double bhill
     return new_head;
 }
 
+
+
+
+
 #include <math.h>
 #include <stdio.h>
 #include <float.h>
-
-
-
-
 
 
 // Oletetaan, että planet_pointer on määritelty ja että calculate_hill_radius(planet, sun) on käytettävissä.
