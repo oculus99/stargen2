@@ -17,6 +17,9 @@
 
 #include	"Dumas.h"
 
+double inverted_gaussian_curve(double x, double mu, double sigma);
+double flat_bottom_inverted_gaussian(double x, double mu, double nyy, double sigma_nousu);
+
 /* Now for some variables global to the accretion process:	    */
 int 			dust_left;
 long double		r_inner;
@@ -35,8 +38,13 @@ extern long double gammaa; //
 extern long double gasdust; // K, 50
 extern long double bee;
 
-extern int use_exponent_disk; // use own disk surface density profile, alpha is exponent
+int disctype=0; // use different disc surface density profiles!
 
+//## possible asteroid zone!
+
+long double sigma=0.5;
+long double muu=2.8;
+long double nyy=1.0; // flat area width/2
 
 long double star_mass_nearest_planet_exponent=.3333333333;
 long double star_mass_farthest_planet_exponent=.333333333;
@@ -47,6 +55,8 @@ long double star_mass_dust_density_exponent=.5000000000;
 dust_pointer	dust_head	= NULL;
 planet_pointer	planet_head	= NULL;
 gen_pointer		hist_head	= NULL;
+
+
 
 void set_initial_conditions(long double inner_limit_of_dust, 
 							long double outer_limit_of_dust)
@@ -662,21 +672,58 @@ planet_pointer dist_planetary_masses(long double stell_mass_ratio,
 			dust_density = dust_density_coeff * pow(stell_mass_ratio, star_mass_dust_density_exponent)
 						   * exp(-alphaa * pow(a,(1.0 /gammaa)));
 
-        if(use_exponent_disk==1)
+        if(disctype==1)
             {
 			dust_density = dust_density_coeff * pow(stell_mass_ratio, star_mass_dust_density_exponent)*pow(a,(-1*alphaa));
             }
 
-    if(use_exponent_disk==2)
+    if(disctype==2)
     {
-    double normalcoeff1=0.0;
+    long double normalcoeff2=1.0;
         // jn check this
 
-    normalcoeff1=(1.0 / (alphaa * sqrt(2 * M_PI))) * exp(-0.5 * pow((a - gammaa) / alphaa, 2));
+    normalcoeff2=(1.0 / (sigma* sqrt(2 * M_PI))) * exp(-0.5 * pow((a - muu) / sigma, 2));
 
-    dust_density = dust_density_coeff * pow(stell_mass_ratio, star_mass_dust_density_exponent)*normalcoeff1;
+    dust_density = dust_density_coeff * pow(stell_mass_ratio, star_mass_dust_density_exponent)*normalcoeff2;
 
     }
+
+    if(disctype==3)
+    {
+    long double normalcoeff3=1.0;
+        // jn check this
+
+  //  normalcoeff3=1-(1/sqrt(2*M_PI*sigma*sigma))*exp(pow((a-muu),2)/(2*sigma*sigma));
+   normalcoeff3=inverted_gaussian_curve(a, muu, sigma);
+
+    //normalcoeff3=1.0-(long double)normalcoeff3;
+
+
+    dust_density = dust_density_coeff * normalcoeff3 * pow(stell_mass_ratio, star_mass_dust_density_exponent)
+						   * exp(-alphaa * pow(a,(1.0 /gammaa))) ;
+
+    }
+
+    if(disctype==4)
+    {
+    long double normalcoeff4=1.0;
+        // jn check this
+
+  //  normalcoeff3=1-(1/sqrt(2*M_PI*sigma*sigma))*exp(pow((a-muu),2)/(2*sigma*sigma));
+//   normalcoeff3=inverted_gaussian_curve(a, muu, sigma);
+normalcoeff4 =flat_bottom_inverted_gaussian(a, muu, nyy, sigma);
+
+
+    //normalcoeff3=1.0-(long double)normalcoeff3;
+
+
+    dust_density = dust_density_coeff * normalcoeff4 * pow(stell_mass_ratio, star_mass_dust_density_exponent)
+						   * exp(-alphaa * pow(a,(1.0 /gammaa))) ;
+
+    }
+
+
+
 
 			crit_mass = critical_limit(a,e,stell_luminosity_ratio);
 			accrete_dust(&mass, &dust_mass, &gas_mass,
@@ -784,3 +831,53 @@ void free_atmosphere(planet_pointer head)
 	}
 }
 
+// Funktio normaalijakauman kertymäfunktion laskemiseen
+// x: arvo, josta kertymäfunktiota lasketaan
+// mu: jakauman keskiarvo
+// sigma: jakauman keskihajonta
+double normal_cdf(double x, double mu, double sigma) {
+    double z = (x - mu) / sigma;
+    return 0.5 * (1.0 + erf(z / sqrt(2.0)));
+}
+
+
+double inverted_gaussian_curve(double x, double mu, double sigma) {
+    // Laske standardoitu Z-arvo
+    double z = (x - mu) / sigma;
+
+    // Laske eksponentiaaliosa normaalijakauman tiheysfunktiosta.
+    // Tämä on sama kuin skaalattu tiheysfunktio, jonka maksimi on 1 mu:n kohdalla.
+    double exponent = -0.5 * z * z;
+    double scaled_pdf_value = exp(exponent); // e^(-0.5 * z^2)
+
+    // Palauta 1 miinus skaalattu tiheysfunktio
+    // Tämä antaa käyrän, joka on 0 mu:n kohdalla ja lähestyy 1:ä kaukana mu:sta.
+    return 1.0 - scaled_pdf_value;
+}
+
+// Funktio laskee tasapohjaisen "kuopan" arvon
+// mu: jakauman keskiarvo
+// nyy: etäisyys mu:sta, jonka sisällä kuopan arvo on nolla (nyy > 0)
+// sigma_nousu: määrittää kuinka jyrkästi käyrä nousee nollakohdan ulkopuolella (sigma_nousu > 0)
+//              Pienempi sigma_nousu -> jyrkempi nousu
+double flat_bottom_inverted_gaussian(double x, double mu, double nyy, double sigma_nousu) {
+    // Laske absoluuttinen etäisyys x:stä mu:hun
+    double absolute_deviation = fabs(x - mu);
+
+    // Tarkista, onko x nollakohdan alueella
+    if (absolute_deviation <= nyy) {
+        return 0.0; // Kuopan pohjalla arvo on nolla
+    } else {
+        // x on nollakohdan alueen ulkopuolella, laske nousun arvo
+        // Laske "tehokas poikkeama" nollakohdan reunasta
+        double effective_deviation = absolute_deviation - nyy;
+
+        // Laske eksponentiaaliosa skaalatusta normaalijakaumasta.
+        // Nyt keskipiste on siirretty niin, että se alkaa nollakohdan reunasta.
+        // Koska haluamme arvon nousevan 0:sta 1:een, käytetään 1 - e^(-...) muotoa.
+        double exponent = -0.5 * (effective_deviation / sigma_nousu) * (effective_deviation / sigma_nousu);
+        double rise_value = 1.0 - exp(exponent);
+
+        return rise_value;
+    }
+}

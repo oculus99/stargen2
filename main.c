@@ -6,7 +6,7 @@
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.44.0008 2025/07/04 11.22 $ 
+ *	$Id: main.c,v 1.44.0009 2025/07/04 11.22 $ 
  */
 
 #include	<stdio.h>
@@ -66,7 +66,10 @@ extern long double gammaa; // N 3?
 extern long double gasdust;
 extern long double bee;
 
-extern int use_exponent_disk; // use own disk surface density profile, alpha is exponent
+extern int disctype; // use own disk surface density profile
+extern long double sigma;
+extern long double muu;
+extern long double nyy;
 
 extern int order_to_resonances;
 extern long double base_resonance;
@@ -173,7 +176,7 @@ void usage(char *prognam)
                     "    --alpha <coeff> default: 5.0 dust density coeff alpha by Dole \n"
                     "    --gamma <coeff> default: 3.0 dust density distribution coeff gamma by Dole\n"
                     "    --beta <coeff> default: 1.2e-5 critical gas accretion mass  coefficient by Dole\n"
-                    "    --disctype <int> default: 0, but can be 1 , 2 . \n With 1 you can set --alpha, with 2 you can set --alpha and --gamma , that are stdev and mean value of ring of surface density \n"
+                    "    --disctype <int> default: 0, but can be 1 , 2 ,3. \n With 1 you can set --alpha, with 2, 3 you can set --sigma and --muu , that are stdev and mean value of ring of surface density \n in type 3 normal distrubution carves a gap to normal disc at location myy, with sigma. in type 4 normal distribution but gap that has width --nyy anf gap spsteepness --sigma, and gap location muu \n"
                     "    --nearest <coeff> default: 0.3 distence of nearest planet AU, before possibly migration\n"
                     "    --farthest <coeff> default: 50.0 farthest planet AU, unmigrated\n"
                     "    --discradius <coeff> default: 200.0 radius of dust disk AU\n"
@@ -469,9 +472,9 @@ int main (int argc, char *argv[])
                     
                             //sscanf (argv[1], "%li", &dabuffer);
                             //use_exponent_disk=(int)atoi(argv[1]);
-                             sscanf (argv[1], "%li", &use_exponent_disk);
+                             sscanf (argv[1], "%li", &disctype);
 
-                            printf(" selected disc surface density profile  type %i", use_exponent_disk);
+                            printf(" selected disc surface density profile type is %i ", disctype);
                             //double dust_density_coeff2=1.0;
                             //exit(-1);
 
@@ -481,6 +484,48 @@ int main (int argc, char *argv[])
                             skip=TRUE;
                         }
                     } 
+
+         else if (strcmp(argv[0], "--sigma") == 0) {
+                        
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            sigma=(long double) dabuffer;
+                    
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+
+         else if (strcmp(argv[0], "--muu") == 0) {
+                     
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            muu=(long double) dabuffer;
+                    
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+         else if (strcmp(argv[0], "--nyy") == 0) {
+                     
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            nyy=(long double) dabuffer;
+                    
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+
          else if (strcmp(argv[0], "--mass") == 0) {
                         // Käsitellään '--gasdust 50' tyyppinen argumentti
                         if (argc > 1) {
