@@ -5,7 +5,7 @@
  *	An example of calling it is the command-line interface defined in
  *	main.c.
  *
- *	$Id: stargen.c,v 1.44 2025/07/01 15.13  $ 0002
+ *	$Id: stargen.c,v 1.44 2025/07/01 15.13  $ 
  *  original Id: stargen.c,v 1.43 2008/12/30 23:15:13 brons Exp 
  */
 
@@ -69,6 +69,12 @@ long double bee=B; // critical mass coeff
 long double sun_mass_lower=1e-6; // very low mass!
 long double sun_mass_upper=100.0; // very big mass!
 
+int order_to_resonances=1;
+long double base_resonance=1.62;
+long double bhill=5.0;
+
+int use_own_luminosity=0;
+long double par_luminosity=1.0;
 
 int flag_verbose = 0;
 // 0x0001			Earthlike count
@@ -101,6 +107,8 @@ long flag_seed		 = 0;
 // jn debug
 planet_pointer filter_planets(planet_pointer seed_system, long double bhill, int filter_asteroids, int use_hill_criterion);
  
+planet_pointer shift_planets_to_resonances(planet_pointer innermost_planet,long double new_inner_a,long double bhill,int use_explicit_ratio,long double explicit_ratio,long double resomin,long double resomax);
+
 // jn debug
 extern double migratek;
 extern int USE_FILTERING;
@@ -395,6 +403,7 @@ void generate_stellar_system(sun*			sun,
 
 	if ((sun->mass < sun_mass_lower) || (sun->mass > sun_mass_upper))
   {
+// jn change
 	//	sun->mass		 = random_number(0.7,1.4);
 // try generate quite sun like star
 	sun->mass		 = random_number(0.1,1.5);
@@ -402,9 +411,21 @@ void generate_stellar_system(sun*			sun,
 
 	outer_dust_limit	 = stellar_dust_limit(sun->mass);
 
+
+
+
+    if(use_own_luminosity==0)
+    {
 	if (sun->luminosity == 0)
 		sun->luminosity	 = luminosity(sun->mass);
-	
+    }
+    else
+    {
+    sun->luminosity	= par_luminosity;
+
+    }	
+
+
 	sun->r_ecosphere	 = sqrt(sun->luminosity);
 	sun->life			 = 1.0E10 * (sun->mass / sun->luminosity);
 
@@ -506,6 +527,22 @@ while(temp_ptr != NULL) {
 }
 printf("Number of planets after filtering: ");
 printf("%d\n", final_count);
+
+
+ if(order_to_resonances==1)
+    {
+// jn nok
+    printf("\n change resonances %lf ", (double)base_resonance);
+    // base_resonance;
+    // innermost_planet->a;
+ 
+    innermost_planet= shift_planets_to_resonances(innermost_planet,innermost_planet->a/4,bhill,   1,base_resonance,1.111,4.0);
+
+
+//planet_pointer shift_planets_to_resonances(planet_pointer innermost_planet,long double new_inner_a,long double bhill,int use_explicit_ratio,long double explicit_ratio,long double resomin,long double resomax);
+
+    }
+
 
 
 //exit(-1);
@@ -2365,6 +2402,11 @@ planet_pointer filter_planets(planet_pointer innermost_planet, long double bhill
 #include <math.h>
 #include <stdio.h>
 #include <float.h>
+
+
+
+
+
 
 // Oletetaan, että planet_pointer on määritelty ja että calculate_hill_radius(planet, sun) on käytettävissä.
 

@@ -6,7 +6,7 @@
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.44.0005 2025/07/02 08.31 $ 
+ *	$Id: main.c,v 1.44.0006 2025/07/04 08.31 $ 
  */
 
 #include	<stdio.h>
@@ -68,6 +68,11 @@ extern long double bee;
 
 extern int use_exponent_disk; // use own disk surface density profile, alpha is exponent
 
+extern int order_to_resonances;
+extern long double base_resonance;
+
+extern int use_own_luminosity;
+extern long double par_luminosity;
 
 
 /*
@@ -115,10 +120,12 @@ star	ilAqrs[] =
 };
 
 catalog	ilAqr_cat		= {sizeof(ilAqrs) / sizeof (star),	"G", &ilAqrs};
-void usage(char*);
+
+//void usage(char*);
 
 void usage(char *prognam)
 {
+// help - usage
 	fprintf(stderr, "Usage: %s [options] [system name]\n", prognam);
 	fprintf(stderr, "  Options:\n"
 					"    -s#  Set random number seed\n"
@@ -154,6 +161,9 @@ void usage(char *prognam)
 					"          http://www.solstation.com/stars.htm\n"
                     "\n"
 					"\n\n Additional long options in this version, under development:\n\n"
+                    "    --help \n"
+                    "    --mass <coeff> default: 1.0 mass of star\n"
+                    "    --luminosity <coeff> default: 1.0 luminosity of star \n"
                     "    --gasdust <coeff> tex. --gasdust 50.0 gas per dust ratio \n Note: in long options you must precede space before value of parameter.\n"
                     "    --density <coeff> default: 1.0 density of dust, relative to default value\n"
                     "    --alpha <coeff> default: 5.0 dust density coeff alpha by Dole \n"
@@ -240,7 +250,9 @@ int main (int argc, char *argv[])
 			//	use_stdout = TRUE;
 			//	break;
         case '-':  // "--" case
-                    if (strcmp(argv[0], "--gasdust") == 0) {
+
+
+         if (strcmp(argv[0], "--gasdust") == 0) {
                         // Käsitellään '--gasdust 50' tyyppinen argumentti
                         if (argc > 1) {
                             //gasdust = atof(argv[1]);
@@ -461,7 +473,85 @@ int main (int argc, char *argv[])
                             skip=TRUE;
                         }
                     } 
+         else if (strcmp(argv[0], "--mass") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            //sscanf (argv[1], "%li", &dabuffer);
+                            //use_exponent_disk=(int)atoi(argv[1]);
+                             sscanf (argv[1], "%li", &mass_arg);
 
+                            printf(" mass %i", mass_arg);
+                            //double dust_density_coeff2=1.0;
+                            //exit(-1);
+
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+         else if (strcmp(argv[0], "--resonances") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                           
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            //use_exponent_disk=(int)atoi(argv[1]);
+                           //  sscanf (argv[1], "%li", &base_resonance);
+                            base_resonance=(long double) dabuffer;
+
+                            printf(" base resonance  %f", dabuffer);
+                            //double dust_density_coeff2=1.0;
+                            //exit(-1);
+
+                                        order_to_resonances=1;
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+
+                        else
+                        {
+                           order_to_resonances=1;
+                              skip=TRUE;
+                        }
+                    } 
+
+
+
+         else if (strcmp(argv[0], "--luminosity") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                           
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            //use_exponent_disk=(int)atoi(argv[1]);
+                           //  sscanf (argv[1], "%li", &base_resonance);
+                            par_luminosity=(long double) dabuffer;
+
+                            printf(" luminosity  %f", dabuffer);
+                            //double dust_density_coeff2=1.0;
+                            //exit(-1);
+
+                            use_own_luminosity=1;
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+
+          
+                    } 
+
+         else if (strcmp(argv[0], "--help") == 0) {            
+                            usage("stargen2");
+                            skip=TRUE;
+                       
+                    } 
+         else if (strcmp(argv[0], "--usage") == 0) {            
+                            usage("stargen2");
+                            skip=TRUE;
+                       
+                    } 
+                   
 
 
            else {
