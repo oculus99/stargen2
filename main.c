@@ -6,7 +6,7 @@
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.44.0006 2025/07/04 08.31 $ 
+ *	$Id: main.c,v 1.44.0007 2025/07/04 08.31 $ 
  */
 
 #include	<stdio.h>
@@ -74,6 +74,10 @@ extern long double base_resonance;
 extern int use_own_luminosity;
 extern long double par_luminosity;
 
+extern double star_mass_nearest_planet_exponent;
+extern long double star_mass_farthest_planet_exponent;
+extern long double star_mass_disk_radius_exponent;
+extern long double star_mass_dust_density_exponent;
 
 /*
  *		StarGen supports private catalogs. The two here are ones I am using
@@ -174,6 +178,10 @@ void usage(char *prognam)
                     "    --farthest <coeff> default: 50.0 farthest planet AU, unmigrated\n"
                     "    --discradius <coeff> default: 200.0 radius of dust disk AU\n"
                     "    --discecc <coeff> default: 0.2 eccentricity of cloud, greater : fwer planets\n"
+                    "    --densityexp <coeff> default:0.5 star mass- disk density exponent \n"
+                    "    --diskradiusexp <coeff> default:0.333 star mass-disk radius exponent \n"
+                    "    --farexp <coeff> default:0.5 star mass-nearest planet exponent \n"
+                    "    --nearexp <coeff> default: 0.5 star mass-farthest planet exponent  \n"
                     "  \n"
                     "    --migrate <coeff> default: 1.0, that is no post-formation migration. \n tex --migrate 0.1 moves planets inward by coefficient 0.1"
                     "  \n"
@@ -477,11 +485,11 @@ int main (int argc, char *argv[])
                         // Käsitellään '--gasdust 50' tyyppinen argumentti
                         if (argc > 1) {
                     
-                            //sscanf (argv[1], "%li", &dabuffer);
-                            //use_exponent_disk=(int)atoi(argv[1]);
-                             sscanf (argv[1], "%li", &mass_arg);
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            mass_arg=(long double)dabuffer;
+                            // sscanf (argv[1], "%li", &mass_arg);
 
-                            printf(" mass %i", mass_arg);
+                            printf(" mass %lf", mass_arg);
                             //double dust_density_coeff2=1.0;
                             //exit(-1);
 
@@ -491,6 +499,62 @@ int main (int argc, char *argv[])
                             skip=TRUE;
                         }
                     } 
+
+         else if (strcmp(argv[0], "--nearexp") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                         sscanf (argv[1], "%lf", &dabuffer);
+                            star_mass_nearest_planet_exponent=(long double)(dabuffer);
+          
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+
+         else if (strcmp(argv[0], "--farexp") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                     sscanf (argv[1], "%lf", &dabuffer);
+                            star_mass_farthest_planet_exponent=(long double)(dabuffer);
+
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+
+
+         else if (strcmp(argv[0], "--diskradiusexp") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            star_mass_disk_radius_exponent=(long double)(dabuffer);
+       
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+         else if (strcmp(argv[0], "--densityexp") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            star_mass_dust_density_exponent=(long double) dabuffer;
+         
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
+
          else if (strcmp(argv[0], "--resonances") == 0) {
                         // Käsitellään '--gasdust 50' tyyppinen argumentti
                         if (argc > 1) {
@@ -528,7 +592,7 @@ int main (int argc, char *argv[])
                            //  sscanf (argv[1], "%li", &base_resonance);
                             par_luminosity=(long double) dabuffer;
 
-                            printf(" luminosity  %f", dabuffer);
+                            printf(" luminosity  %lf", dabuffer);
                             //double dust_density_coeff2=1.0;
                             //exit(-1);
 

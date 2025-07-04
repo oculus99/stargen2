@@ -38,6 +38,11 @@ extern long double bee;
 extern int use_exponent_disk; // use own disk surface density profile, alpha is exponent
 
 
+long double star_mass_nearest_planet_exponent=.3333333333;
+long double star_mass_farthest_planet_exponent=.333333333;
+long double star_mass_disk_radius_exponent=.33333333333;
+long double star_mass_dust_density_exponent=.5000000000;
+
 
 dust_pointer	dust_head	= NULL;
 planet_pointer	planet_head	= NULL;
@@ -66,17 +71,17 @@ void set_initial_conditions(long double inner_limit_of_dust,
 
 long double stellar_dust_limit(long double stell_mass_ratio)
 {
-	return(diskradiusk * pow(stell_mass_ratio,(1.0 / 3.0)));
+	return(diskradiusk * pow(stell_mass_ratio,star_mass_nearest_planet_exponent));
 }
 
 long double nearest_planet(long double stell_mass_ratio)
 {
-	return(nearestk * pow(stell_mass_ratio,(1.0 / 3.0)));
+	return(nearestk * pow(stell_mass_ratio,star_mass_farthest_planet_exponent));
 }
 
 long double farthest_planet(long double stell_mass_ratio)
 {
-	return(farthestk * pow(stell_mass_ratio,(1.0 / 3.0)));
+	return(farthestk * pow(stell_mass_ratio,star_mass_disk_radius_exponent));
 }
 
 long double inner_effect_limit(long double a, long double e, long double mass)
@@ -654,12 +659,12 @@ planet_pointer dist_planetary_masses(long double stell_mass_ratio,
 			if (flag_verbose & 0x0100)
 				fprintf (stderr, "Injecting protoplanet at %Lg AU.\n", a);
 			
-			dust_density = dust_density_coeff * sqrt(stell_mass_ratio)
+			dust_density = dust_density_coeff * pow(stell_mass_ratio, star_mass_dust_density_exponent)
 						   * exp(-alphaa * pow(a,(1.0 /gammaa)));
 
         if(use_exponent_disk==1)
             {
-			dust_density = dust_density_coeff * sqrt(stell_mass_ratio)*pow(a,(-1*alphaa));
+			dust_density = dust_density_coeff * pow(stell_mass_ratio, star_mass_dust_density_exponent)*pow(a,(-1*alphaa));
             }
 
     if(use_exponent_disk==2)
@@ -669,7 +674,7 @@ planet_pointer dist_planetary_masses(long double stell_mass_ratio,
 
     normalcoeff1=(1.0 / (alphaa * sqrt(2 * M_PI))) * exp(-0.5 * pow((a - gammaa) / alphaa, 2));
 
-    dust_density = dust_density_coeff * sqrt(stell_mass_ratio)*normalcoeff1;
+    dust_density = dust_density_coeff * pow(stell_mass_ratio, star_mass_dust_density_exponent)*normalcoeff1;
 
     }
 
