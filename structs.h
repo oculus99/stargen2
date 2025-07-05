@@ -26,6 +26,9 @@ typedef struct gas {
 
 typedef struct sun {
 	long double	luminosity;
+	long double	teff;
+	long double	radius;
+	long double	metallicity;
 	long double	mass;
 	long double life;
 	long double age;

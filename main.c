@@ -6,7 +6,7 @@
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.44.0009 2025/07/04 11.22 $ 
+ *	$Id: main.c,v 1.44.0010 2025/07/04 11.22 $ 
  */
 
 #include	<stdio.h>
@@ -54,6 +54,11 @@ double BHILL_CRITERION = 1.0; // eikä long double
 int FILTER_ASTEROIDS = 0; // Set to 1 to remove asteroids, 0 to keep them
 int USE_HILL = 1;         // Set to 1 to use Hill criterion, 0 for Orbital Period
 
+extern int astertab[1024];
+extern int own_convert_to_asteroids;
+extern int astertab2[1024];
+extern int own_to_delete_planets;
+
 
 // some basic params of cloud
 extern long double dust_density_coeff; //2e-3
@@ -76,6 +81,8 @@ extern long double base_resonance;
 
 extern int use_own_luminosity;
 extern long double par_luminosity;
+extern int use_own_teff;
+extern long double teff_arg;
 
 extern double star_mass_nearest_planet_exponent;
 extern long double star_mass_farthest_planet_exponent;
@@ -171,6 +178,7 @@ void usage(char *prognam)
                     "    --help \n"
                     "    --mass <coeff> default: 1.0 mass of star\n"
                     "    --luminosity <coeff> default: 1.0 luminosity of star \n"
+                    "    --teff<coeff> default: 5785 surface temperature of star \n"
                     "    --gasdust <coeff> tex. --gasdust 50.0 gas per dust ratio \n Note: in long options you must precede space before value of parameter.\n"
                     "    --density <coeff> default: 1.0 density of dust, relative to default value\n"
                     "    --alpha <coeff> default: 5.0 dust density coeff alpha by Dole \n"
@@ -233,6 +241,9 @@ int main (int argc, char *argv[])
 
     double dust_density_coeff2=1.0;
     double dabuffer=0.0;
+
+    char strbuffer[1024]="";
+    char buffer[1024]="";
 
 #ifdef macintosh
 	_ftype 		= 'TEXT';
@@ -544,6 +555,25 @@ int main (int argc, char *argv[])
                             skip=TRUE;
                         }
                     } 
+ 
+        else if (strcmp(argv[0], "--teff") == 0) {
+                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                        if (argc > 1) {
+                    
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            teff_arg=(long double)dabuffer;
+                            // sscanf (argv[1], "%li", &mass_arg);
+
+                            printf(" Teff %lf", mass_arg);
+                            //double dust_density_coeff2=1.0;
+                            //exit(-1);
+                            use_own_teff=1;
+
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+                    } 
 
          else if (strcmp(argv[0], "--nearexp") == 0) {
                         // Käsitellään '--gasdust 50' tyyppinen argumentti
@@ -587,7 +617,7 @@ int main (int argc, char *argv[])
                         }
                     } 
          else if (strcmp(argv[0], "--densityexp") == 0) {
-                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                     
                         if (argc > 1) {
                     
                             sscanf (argv[1], "%lf", &dabuffer);
@@ -601,7 +631,7 @@ int main (int argc, char *argv[])
                     } 
 
          else if (strcmp(argv[0], "--resonances") == 0) {
-                        // Käsitellään '--gasdust 50' tyyppinen argumentti
+                      
                         if (argc > 1) {
                            
                             sscanf (argv[1], "%lf", &dabuffer);
@@ -629,7 +659,6 @@ int main (int argc, char *argv[])
 
 
          else if (strcmp(argv[0], "--luminosity") == 0) {
-                        // Käsitellään '--gasdust 50' tyyppinen argumentti
                         if (argc > 1) {
                            
                             sscanf (argv[1], "%lf", &dabuffer);
@@ -649,6 +678,112 @@ int main (int argc, char *argv[])
 
           
                     } 
+
+
+         else if (strcmp(argv[0], "--toasteroids") == 0) {
+        
+                        if (argc > 1) {
+
+                   //         int astertab[1024];
+  
+
+                            memset(strbuffer,0,1024);
+                            memset(strbuffer,0,1024);
+                            sscanf (argv[1], "%s", &strbuffer);
+                            
+                            printf("\n >%s<",strbuffer );
+                          
+                        
+             
+                            strcpy(buffer, strbuffer);
+
+                            // Etsi osat pilkkujen mukaan ja muutetaan ne kokonaisluvuiksi
+                            char *token = strtok(buffer, ",");
+                            int i, j=0;
+                            while (token != NULL) {
+                                astertab[i] = atoi(token); // Muutetaan merkkijono kokonaisluvuksi
+                                    i++;
+                                token = strtok(NULL, ","); // Etsi seuraava osa
+                            }
+
+                            // Tulostetaan taulu tarkistusta varten
+                            printf("Planets num: ");
+                      
+                            for (j = 0; j < i; j++) {
+                                    printf("%d ", astertab[j]);
+                                 }
+                                printf("\n");
+
+
+                            own_convert_to_asteroids=j;
+
+                            printf("\n %i ",own_convert_to_asteroids );
+
+
+                            //exit(-1);
+
+                         //   use_own_luminosity=1;
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+
+          
+                    } 
+// own_to_delete_planets
+
+         else if (strcmp(argv[0], "--todelete") == 0) {
+        
+                        if (argc > 1) {
+
+                   //         int astertab[1024];
+  
+
+                            memset(strbuffer,0,1024);
+                            memset(strbuffer,0,1024);
+                            sscanf (argv[1], "%s", &strbuffer);
+                            
+                            printf("\n >%s<",strbuffer );
+                          
+                        
+             
+                            strcpy(buffer, strbuffer);
+
+                            // Etsi osat pilkkujen mukaan ja muutetaan ne kokonaisluvuiksi
+                            char *token = strtok(buffer, ",");
+                            int i, j=0;
+                            while (token != NULL) {
+                                astertab2[i] = atoi(token); // Muutetaan merkkijono kokonaisluvuksi
+                                    i++;
+                                token = strtok(NULL, ","); // Etsi seuraava osa
+                            }
+
+                            // Tulostetaan taulu tarkistusta varten
+                            printf("Planets num: ");
+                      
+                            for (j = 0; j < i; j++) {
+                                    printf("%d ", astertab2[j]);
+                                 }
+                                printf("\n");
+
+
+                            own_to_delete_planets=j;
+
+                            printf("\n %i ",own_to_delete_planets );
+
+
+                            //exit(-1);
+
+                        //    use_own_luminosity=1;
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+
+          
+                    } 
+
+
 
          else if (strcmp(argv[0], "--help") == 0) {            
                             usage("stargen2");

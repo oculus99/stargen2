@@ -16,6 +16,7 @@
 #include	<time.h>
 #include	<ctype.h>
 #include <float.h> // For DBL_EPSILON or LDBL_EPSILON
+#include <stdbool.h>
 
 #include	"Dumas.h"
 
@@ -50,10 +51,10 @@
 
 
 
-char *	stargen_revision = "$Revision: 1.44.00 $";
+char *	stargen_revision = "$Revision: 1.44.10 $";
 
 /*  These are the global variables used during accretion:  */
-planet_pointer	innermost_planet;
+planet_pointer innermost_planet;
 
 // some basic params of cloud
 long double	dust_density_coeff = DUST_DENSITY_COEFF;
@@ -71,12 +72,20 @@ long double bee=B; // critical mass coeff
 long double sun_mass_lower=1e-6; // very low mass!
 long double sun_mass_upper=100.0; // very big mass!
 
+
+
 int order_to_resonances=0;
 long double base_resonance=1.62;
 long double resonance_bhill=5.0;
 
 int use_own_luminosity=0;
 long double par_luminosity=1.0;
+int use_own_teff=0;
+long double teff_arg=5785;
+
+
+
+
 
 int flag_verbose = 0;
 // 0x0001			Earthlike count
@@ -112,6 +121,10 @@ planet_pointer filter_planets(planet_pointer innermost_planet, long double bhill
 
 planet_pointer shift_planets_to_resonances(planet_pointer innermost_planet,long double new_inner_a,long double bhill,int use_explicit_ratio,long double explicit_ratio,long double resomin,long double resomax);
 
+planet_pointer convert_certain_planets_to_asteroids(planet_pointer innermost_planet, int *astertab, int num_of_planets);
+
+planet_pointer delete_certain_planets(planet_pointer innermost_planet, int *astertab, int num_of_planets);
+
 // jn debug
 extern double migratek;
 extern int USE_FILTERING;
@@ -120,7 +133,15 @@ extern double BHILL_CRITERION;
 extern int FILTER_ASTEROIDS; // Set to 1 to remove asteroids, 0 to keep them
 extern int USE_HILL;         // Set to 1 to use Hill criterion, 0 for Orbital Period
 
-int use_exponent_disk=0; // use own disk surface density profile, alpha is exponent
+//int use_exponent_disk=0; // use own disk surface density profile, alpha is exponent
+
+
+int astertab[1024];
+int own_convert_to_asteroids=0;
+int astertab2[1024];
+int own_to_delete_planets=0;
+
+
 
 
 int earthlike		 = 0;
@@ -430,6 +451,18 @@ void generate_stellar_system(sun*			sun,
 
 
 	sun->r_ecosphere	 = sqrt(sun->luminosity);
+
+    if(use_own_teff==0)
+    {
+    sun->teff=teff_arg;
+        // check this!
+	      sun->r_ecosphere=	sun->r_ecosphere*pow((sun->teff/5785), -0.8);
+    }
+
+
+
+
+
 	sun->life			 = 1.0E10 * (sun->mass / sun->luminosity);
 
 	if (use_seed_system)
@@ -553,6 +586,22 @@ printf("%d\n", final_count);
 
 
 
+    if(own_convert_to_asteroids>0)
+    {
+        innermost_planet=convert_certain_planets_to_asteroids(innermost_planet, astertab, own_convert_to_asteroids);
+    }
+
+    if(own_to_delete_planets>0)
+    {
+    
+         innermost_planet=delete_certain_planets(innermost_planet, astertab2, own_to_delete_planets);
+    
+
+    }
+
+
+
+// function rtn
 }
 
 void calculate_gases(sun*			sun,
@@ -1402,7 +1451,7 @@ int stargen (actions		action,
 			 int			graphic_format
 			 )
 {
-	sun				sun					= {0.0, 0.0, 0.0, 0.0, 0.0, ""};
+	sun				sun					= {0.0, 0.0, 0.0, 0.0, 0.0,0.0,0.0,0.0, ""};
 	long double		min_mass 			= 0.4;
 	long double		inc_mass 			= 0.05;
 	long double		max_mass 			= 2.35;
@@ -2512,6 +2561,78 @@ planet_pointer shift_planets_to_resonances(
 
     // Vapautetaan taulukko, mutta ei planeettoja itseään
     free_planet_array(planets);
+
+    return innermost_planet;
+}
+
+planet_pointer convert_certain_planets_to_asteroids(
+    planet_pointer innermost_planet, int *astertab, int num_of_planets)
+{
+    planet_pointer current = innermost_planet;
+
+    while (current != NULL) {
+        // Tarkista, onko tämän planeetan numero mukana astertab-taulukossa
+        for (int i = 0; i < num_of_planets; i++) {
+            if (current->planet_no == astertab[i]) {
+                // Muutetaan planeetan tyyppi ja massat asteroidiksi
+                current->type = tAsteroids;
+                current->mass = 1e-12;
+               current->radius = 0.01; 
+               current->dust_mass = 1e-12;
+                current->gas_mass = 0.0;
+                current->gas_giant = 0;
+                break;  // Ei tarvitse jatkaa etsimistä
+            }
+        }
+        current = current->next_planet;
+    }
+
+    return innermost_planet;
+}
+
+
+
+// deleting code
+
+//
+
+//
+
+planet_pointer delete_certain_planets(
+    planet_pointer innermost_planet, int *astertab, int num_of_planets
+) {
+    bool should_delete(int number, int *tab, int n) {
+        for (int i = 0; i < n; ++i)
+            if (tab[i] == number)
+                return true;
+        return false;
+    }
+
+    planet_pointer current = innermost_planet;
+    planet_pointer prev = NULL;
+
+    while (current != NULL) {
+        planet_pointer next = current->next_planet;
+
+        if (should_delete(current->planet_no, astertab, num_of_planets)) {
+            printf("Freeing planet %d at %p\n", current->planet_no, (void*)current);
+
+            if (prev == NULL) {
+                // Poistetaan listan ensimmäinen solmu
+                innermost_planet = next;
+            } else {
+                prev->next_planet = next;
+            }
+
+            current->next_planet = NULL; // irrotetaan linkitys
+            free(current);
+            // HUOM! prev ei päivity, koska current poistettiin
+        } else {
+            prev = current; // päivitetään vain jos ei poistettu
+        }
+
+        current = next;
+    }
 
     return innermost_planet;
 }
