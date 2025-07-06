@@ -6,7 +6,7 @@
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.44.0011 2025/07/06 11.22 $ 
+ *	$Id: main.c,v 1.44.0012 2025/07/06 11.22 $ 
  */
 
 #include	<stdio.h>
@@ -98,9 +98,9 @@ extern long double star_mass_dust_density_exponent;
 #define AVE(x,y)	((x+y)/2.)
 
 				/*  No 	Orbit	Eccen. 	Tilt	Mass		Giant?	Dust Mass	Gas */
-planets sphinx3   ={ 4,	3.0,	0.046,	10.5,	EM(2.35),	FALSE,	EM(2.35),	0, 	ZEROES,0,NULL, NULL};
+planets sphinx3   ={ 4,	3.0,	0.046,	10.5,	EM(2.35), 	FALSE,	EM(2.35),	0, 	ZEROES,0,NULL, NULL};
 planets sphinx2   ={ 3,	2.25,	0.02,	10.5,	EM(2.35),	FALSE,	EM(2.35),	0, 	ZEROES,0,NULL, &sphinx3};
-planets sphinx    ={ 2,	1.6,	0.02,	10.5,	EM(2.2),	FALSE,	EM(2.2),	0, 	ZEROES,0,NULL, &sphinx2};
+planets sphinx    ={ 2,	1.6,	0.02,	10.5,	EM(2.2), FALSE,	EM(2.2),	0, 	ZEROES,0,NULL, &sphinx2};
 planets manticore ={ 1,	1.115,	0.017,	23.5,	EM(1.01),	FALSE,	EM(1.01),	0, 	ZEROES,0,NULL, &sphinx};
 
 
@@ -125,7 +125,7 @@ catalog	helio		= {sizeof(helios) / sizeof (star), "?",	&helios};
 			     /*	No Orbit Eccen. Tilt   Mass    Gas Giant? Dust Mass   Gas */
 planets ilaqrb={1, 0.21, 0.1,   0,     EM(600.),TRUE,     0,   EM(600.), ZEROES,0,NULL, NULL};
 planets ilaqrc={2, 0.13, 0.27,  0,     EM(178.),TRUE,     0,   EM(178.), ZEROES,0,NULL, &ilaqrb};
-planets ilaqrd={3, 0.021,0.22,  0,     EM(5.9), FALSE,    EM(5.9),    0, ZEROES,0,NULL, &ilaqrc};	// EM(5.9) or 7.53 +/- 0.70 Earth-masses
+planets ilaqrd={3, 0.021,0.22,  0,     EM(5.9), FALSE,    EM(5.9),   0, ZEROES,0,NULL, &ilaqrc};	// EM(5.9) or 7.53 +/- 0.70 Earth-masses
 
 star	ilAqrs[] = 
 // L		Mass	Mass2	Eccen.	SMAxis	 Planets	Designation	Celes	Name

@@ -1642,10 +1642,10 @@ void html_describe_system(planet_pointer 	innermost_planet,
 	 
 	fprintf (file,
 	        "\n<table border=3 cellspacing=2 cellpadding=2 align=center bgcolor='" BGTABLE "' width='90%c'>\n"
-			"<tr><th colspan=8 bgcolor='" BGHEADER "' align=center>\n"
+			"<tr><th colspan=6 bgcolor='" BGHEADER "' align=center>\n"
 		        	"<font size='+2' color='" TXHEADER "'>Planetary Overview</font></th></tr>\n\n"
 			"<tr align=center>\n"
-			"	<th>#</th><th></th> <th>Type</th> <th>Dist.</th> <th>Peri</th> <th>Mass</th> <th>Radius</th> <th>Temp_irr K</th> \n"
+			"	<th>#</th><th></th> <th>Type</th> <th>Dist.</th>  <th>Mass</th> <th>Radius</th> \n"
 			"</tr>\n", '%');
 
 	for (planet=innermost_planet, counter=1;
@@ -1660,10 +1660,8 @@ void html_describe_system(planet_pointer 	innermost_planet,
 				"\t<td align=center><img alt='%s' src='%sref/%s.gif'></td>\n"
 				"\t<td colspan=1>%s</td>\n"
 				"\t<td>%7.4Lf  AU</td>\n"
-			    "\t<td>%7.4Lf  yr</td>\n"	
 			    "\t<td>%8.4Lf EM</td>\n"
 				"\t<td>%8.4Lf ER</td>"
-				"\t<td>%8.1Lf K</td>"
 				"</tr>\n",
 				counter, counter, 
 			    typeString, 
@@ -1671,12 +1669,9 @@ void html_describe_system(planet_pointer 	innermost_planet,
 			    typeString, 
 			    typeString, 
 				planet->a, 
-            planet->orb_period/365.2564, 			
         	planet->mass * SUN_MASS_IN_EARTH_MASSES,
-				planet->radius / KM_EARTH_RADIUS,
-		//	(planet->max_temp+planet->min_temp)/2
-	  planet->estimated_temp
-);
+				planet->radius / KM_EARTH_RADIUS
+            );
 		for (moon=planet->first_moon, moons=1;
 			moon != NULL;
 			moon=moon->next_planet, moons++)

@@ -45,6 +45,10 @@ typedef struct planets_record {
 	int 		gas_giant;			/* TRUE if the planet is a gas giant */
 	long double	dust_mass;			/* mass, ignoring gas				 */
 	long double	gas_mass;			/* mass, ignoring dust				 */
+//	long double	iron_content;		/* iron proportion			 */
+//	long double	rock_content;		/* rock proportion		 */
+	//long double	ice_content;		/* ice proportion		 */
+//	long double	gas_content;		/* gas proportion		 */
 									/*   ZEROES start here               */
 	long double moon_a;				/* semi-major axis of lunar orbit (in AU)*/
 	long double moon_e;				/* eccentricity of lunar orbit		 */
