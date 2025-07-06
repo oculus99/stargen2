@@ -1048,10 +1048,15 @@ void html_thumbnails(planet_pointer innermost_planet,
 			char *ptype = type_string (planet->type);
 			char info[100];
 			
+				// jn
 			if (planet->type == tAsteroids)
-				ppixels = (int)(25.0 + ( 5.0 * log ((planet->mass * SUN_MASS_IN_EARTH_MASSES) / 
-													ASTEROID_MASS_LIMIT)));
-			
+				{
+				ppixels = (int)(25.0) ;
+				//if (planet->type == tAsteroids)
+				//ppixels = (int)(25.0 + ( 5.0 * log ((planet->mass * SUN_MASS_IN_EARTH_MASSES) / 
+												//	ASTEROID_MASS_LIMIT)));												ASTEROID_MASS_LIMIT)));
+			}
+					
 			if (ppixels < 3)
 				ppixels = 3;
 			
@@ -1637,10 +1642,10 @@ void html_describe_system(planet_pointer 	innermost_planet,
 	 
 	fprintf (file,
 	        "\n<table border=3 cellspacing=2 cellpadding=2 align=center bgcolor='" BGTABLE "' width='90%c'>\n"
-			"<tr><th colspan=7 bgcolor='" BGHEADER "' align=center>\n"
+			"<tr><th colspan=8 bgcolor='" BGHEADER "' align=center>\n"
 		        	"<font size='+2' color='" TXHEADER "'>Planetary Overview</font></th></tr>\n\n"
 			"<tr align=center>\n"
-			"	<th>#</th><th colspan=3>Type</th><th>Dist.</th><th>Mass</th><th>Radius</th>\n"
+			"	<th>#</th><th></th> <th>Type</th> <th>Dist.</th> <th>Peri</th> <th>Mass</th> <th>Radius</th> <th>Temp_irr K</th> \n"
 			"</tr>\n", '%');
 
 	for (planet=innermost_planet, counter=1;
@@ -1653,10 +1658,12 @@ void html_describe_system(planet_pointer 	innermost_planet,
 	        "<tr align=right>\n"
 				"\t<td><a href='#%d'>%d</a></td>\n"
 				"\t<td align=center><img alt='%s' src='%sref/%s.gif'></td>\n"
-				"\t<td colspan=2>%s</td>\n"
+				"\t<td colspan=1>%s</td>\n"
 				"\t<td>%7.4Lf  AU</td>\n"
-				"\t<td>%8.4Lf EM</td>\n"
+			    "\t<td>%7.4Lf  yr</td>\n"	
+			    "\t<td>%8.4Lf EM</td>\n"
 				"\t<td>%8.4Lf ER</td>"
+				"\t<td>%8.1Lf K</td>"
 				"</tr>\n",
 				counter, counter, 
 			    typeString, 
@@ -1664,8 +1671,12 @@ void html_describe_system(planet_pointer 	innermost_planet,
 			    typeString, 
 			    typeString, 
 				planet->a, 
-				planet->mass * SUN_MASS_IN_EARTH_MASSES,
-				planet->radius / KM_EARTH_RADIUS);
+            planet->orb_period/365.2564, 			
+        	planet->mass * SUN_MASS_IN_EARTH_MASSES,
+				planet->radius / KM_EARTH_RADIUS,
+		//	(planet->max_temp+planet->min_temp)/2
+	  planet->estimated_temp
+);
 		for (moon=planet->first_moon, moons=1;
 			moon != NULL;
 			moon=moon->next_planet, moons++)

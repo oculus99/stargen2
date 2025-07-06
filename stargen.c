@@ -2395,7 +2395,7 @@ double SOLARIA_MASS=1.0;
 
                         planet_pointer survivor = planet_array[(remove_idx == i) ? j : i];
 
-                        planet_array[remove_idx]->mass = 1e-12L * SOLARIA_MASS;
+                        planet_array[remove_idx]->mass = 1e-7L * SOLARIA_MASS;
                         planet_array[remove_idx]->a = (p1->a + p2->a) / 2.0L;
                         planet_array[remove_idx]->type = tAsteroids;
                         planet_array[remove_idx]->sun = survivor->sun;
@@ -2408,10 +2408,10 @@ double SOLARIA_MASS=1.0;
                         // Tee vain uusi asteroidi (ei poistoa)
                       //  planet_pointer new_asteroid = create_new_planet(); // sinun create-funktiosi
                        
-planet_pointer new_asteroid=create_new_planet(num_planets, (p1->a + p2->a) / 2.0L, 1e-12L * SOLARIA_MASS, 0,  p1->orb_period, innermost_planet->sun, tAsteroids);
+planet_pointer new_asteroid=create_new_planet(num_planets, (p1->a + p2->a) / 2.0L, 1e-7L * SOLARIA_MASS, 0,  p1->orb_period, innermost_planet->sun, tAsteroids);
 
 
- new_asteroid->mass = 1e-12L * SOLARIA_MASS;
+ new_asteroid->mass = 1e-7L * SOLARIA_MASS;
                         new_asteroid->a = (p1->a + p2->a) / 2.0L;
                         new_asteroid->type = tAsteroids;
                         new_asteroid->sun = p1->sun;

@@ -6,7 +6,7 @@
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.44.0010 2025/07/04 11.22 $ 
+ *	$Id: main.c,v 1.44.0011 2025/07/06 11.22 $ 
  */
 
 #include	<stdio.h>
@@ -200,6 +200,8 @@ void usage(char *prognam)
                     "  \n"
                     "   --filterhill <coeff>, default off \n"
                      "  --filterperiod <coeff> 2, default off "   
+                    "   --toasteroids <int,int,int...>, convert planets to asteroids, --tooasteroids 1,5,6 under development default off \n"
+                     "  --todelete <int,int,int...>, delenet planets by planet # tex --todelete 1,3,12 default off"   
                     "\n"
 
 					"\n"
