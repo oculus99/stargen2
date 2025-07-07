@@ -67,6 +67,8 @@ long double gammaa=3.0; // N 3?
 long double gasdust=50; // doles 50, sun 70 ?
 long double bee=B; // critical mass coeff
 long double migrate_resonances=0;
+int delete_small_planets=0;
+long double lower_mass_limit=0.03;
 
 //long double sun_mass_lower=0.065;
 //long double sun_mass_lower=10.0;
@@ -125,6 +127,9 @@ planet_pointer shift_planets_to_resonances(planet_pointer innermost_planet,long 
 planet_pointer convert_certain_planets_to_asteroids(planet_pointer innermost_planet, int *astertab, int num_of_planets);
 
 planet_pointer delete_certain_planets(planet_pointer innermost_planet, int *astertab, int num_of_planets);
+
+planet_pointer below_lower_mass_limit_away(planet_pointer innermost_planet,long double lower_mass_limit,bool convert_to_asteroids);
+
 
 // jn debug
 extern double migratek;
@@ -559,6 +564,13 @@ void generate_stellar_system(sun*			sun,
 
 
 
+
+
+if(delete_small_planets==1)
+{
+// --- Modified function to filter or convert planets ---
+    innermost_planet= below_lower_mass_limit_away(innermost_planet,(long double)lower_mass_limit/333000,false);
+}
 
 
     if(USE_FILTERING==1)
@@ -2669,6 +2681,89 @@ planet_pointer delete_certain_planets(
     }
 
     return innermost_planet;
+}
+
+
+
+
+
+// --- Modified function to filter or convert planets ---
+planet_pointer below_lower_mass_limit_away(
+    planet_pointer innermost_planet,
+    long double lower_mass_limit,
+    bool convert_to_asteroids // true to convert, false to delete
+) {
+    planet_pointer current = innermost_planet;
+    planet_pointer prev = NULL;
+
+    while (current != NULL) {
+        planet_pointer next = current->next_planet;
+
+        if (current->mass < lower_mass_limit) {
+            if (convert_to_asteroids) {
+                // Convert to asteroid
+                printf("Converting planet %d (mass %.2f) to an asteroid.\n",
+                       current->planet_no, current->mass);
+                current->type = tAsteroids;
+                current->mass=1e-6;
+                prev = current; // Move prev forward, as current is not deleted
+            } else {
+                // Delete the planet
+                printf("Freeing planet %d (mass %.2f) at %p\n",
+                       current->planet_no, current->mass, (void*)current);
+
+                if (prev == NULL) {
+                    // Removing the first node
+                    innermost_planet = next;
+                } else {
+                    prev->next_planet = next;
+                }
+
+                current->next_planet = NULL; // Detach from the list
+                free(current);
+                // prev does not update, as current was deleted
+            }
+        } else {
+            prev = current; // Move prev forward, as current was kept
+        }
+
+        current = next;
+    }
+
+    return innermost_planet;
+}
+
+/*
+// Function to print the planets in the list
+void print_planets(planet_pointer head) {
+    planet_pointer current = head;
+    if (current == NULL) {
+        printf("No planets in the list.\n");
+        return;
+    }
+    printf("\n--- Current Planet List ---\n");
+    while (current != NULL) {
+        printf("Planet No: %d, Mass: %.2f, Type: ", current->planet_no, current->mass);
+        switch (current->type) {
+            case tUnknown: printf("Unknown\n"); break;
+            case tGasGiant: printf("Gas Giant\n"); break;
+            case tRockyPlanet: printf("Rocky Planet\n"); break;
+            case tAsteroids: printf("Asteroid\n"); break;
+        }
+        current = current->next_planet;
+    }
+    printf("---------------------------\n");
+}
+*/
+
+// Function to free the entire linked list
+void free_planet_list(planet_pointer head) {
+    planet_pointer current = head;
+    while (current != NULL) {
+        planet_pointer next = current->next_planet;
+        free(current);
+        current = next;
+    }
 }
 
 

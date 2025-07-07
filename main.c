@@ -6,7 +6,7 @@
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.44.0014 2025/07/06 11.22 $ 
+ *	$Id: main.c,v 1.44.0015 2025/07/06 11.22 $ 
  */
 
 #include	<stdio.h>
@@ -78,6 +78,10 @@ extern long double nyy;
 
 extern long double migrate_resonances;
 extern int order_to_resonances;
+
+extern int delete_small_planets;
+extern long double lower_mass_limit;
+
 extern long double base_resonance;
 
 extern int use_own_luminosity;
@@ -203,7 +207,8 @@ void usage(char *prognam)
                     "   --filterhill <coeff>, default off \n"
                      "  --filterperiod <coeff> 2, default off "   
                     "   --toasteroids <int,int,int...>, convert planets to asteroids, --tooasteroids 1,5,6 under development default off \n"
-                     "  --todelete <int,int,int...>, delenet planets by planet # tex --todelete 1,3,12 default off"   
+                     "  --todelete <int,int,int...>, delenet planets by planet # tex --todelete 1,3,12 default off"
+                    " --deleteundermass <coeff>, default 0.03 delete small planets to clarify output"   
                     "\n"
 
 					"\n"
@@ -701,6 +706,30 @@ int main (int argc, char *argv[])
 
           
                     } 
+
+         else if (strcmp(argv[0], "--deleteundermass") == 0) {
+                        if (argc > 1) {
+                           
+                            sscanf (argv[1], "%lf", &dabuffer);
+                  
+                            lower_mass_limit=(long double) dabuffer;
+
+            
+
+                            printf(" lower mass limit of planet %lf Mearths", dabuffer);
+                
+                              delete_small_planets=1;
+
+                 
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+
+          
+                    } 
+
+
 
 
          else if (strcmp(argv[0], "--toasteroids") == 0) {
