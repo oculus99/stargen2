@@ -66,6 +66,7 @@ long double alphaa=5.0; // ALPHA 5?
 long double gammaa=3.0; // N 3?
 long double gasdust=50; // doles 50, sun 70 ?
 long double bee=B; // critical mass coeff
+long double migrate_resonances=0;
 
 //long double sun_mass_lower=0.065;
 //long double sun_mass_lower=10.0;
@@ -525,6 +526,39 @@ void generate_stellar_system(sun*			sun,
        
     } 
    
+// jn debug
+
+    if(migrate_resonances>0.0)
+    {
+        long double migrate_distcoeff=1.0;
+        migrate_distcoeff=pow( migrate_resonances, (2.0/3.0));
+        printf("\nmigrating to resonaces %lf",(double)migrate_resonances );
+        printf("\nmigrating distcoedd %lf",(double)migrate_distcoeff );
+        planet_pointer temp_ptr4 = innermost_planet;
+        int count4 = 0;
+
+
+         while(temp_ptr4 != NULL) {
+
+                if(temp_ptr4->type!=tAsteroids)
+               
+                count4++;
+                long double newa=0.0;
+                newa=nearestk*pow(migrate_distcoeff, (count4)  );
+                printf("\n %lf ", (double)newa);
+
+                temp_ptr4->a=newa;
+
+  
+                temp_ptr4 = temp_ptr4->next_planet;
+       
+            } 
+    
+
+        }
+
+
+
 
 
     if(USE_FILTERING==1)

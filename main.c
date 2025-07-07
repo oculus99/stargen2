@@ -6,7 +6,7 @@
  *	general functionality and then calling stargen(), whose API is
  *	defined in stargen.h
  *
- *	$Id: main.c,v 1.44.0012 2025/07/06 11.22 $ 
+ *	$Id: main.c,v 1.44.0014 2025/07/06 11.22 $ 
  */
 
 #include	<stdio.h>
@@ -76,6 +76,7 @@ extern long double sigma;
 extern long double muu;
 extern long double nyy;
 
+extern long double migrate_resonances;
 extern int order_to_resonances;
 extern long double base_resonance;
 
@@ -195,6 +196,7 @@ void usage(char *prognam)
                     "    --nearexp <coeff> default: 0.5 star mass-farthest planet exponent  \n"
                     "  \n"
                     "    --migrate <coeff> default: 1.0, that is no post-formation migration. \n tex --migrate 0.1 moves planets inward by coefficient 0.1"
+                    "    --migratetoresonances <coeff> default: 0.0. double number tells simple, uniform period ratio of resonances \n tex --migratetoresonnaces 1,5 \noften usage like this --migratetoresonaces 1.5 --nearest 0.01  "
                     "  \n"
                     "  Planet filtering out due to orbital disturbances by mutual gravitation:\n"
                     "  \n"
@@ -658,6 +660,25 @@ int main (int argc, char *argv[])
                         }
                     } 
 
+         else if (strcmp(argv[0], "--migratetoresonances") == 0) {
+                      
+                        if (argc > 1) {
+                           
+                            sscanf (argv[1], "%lf", &dabuffer);
+                            migrate_resonances=(long double) dabuffer;
+                            printf(" migrate to resonances  %f", dabuffer);
+    
+                            argv++;  // Siirrytään seuraavaan argumenttiin
+                            argc--;
+                            skip=TRUE;
+                        }
+
+                        else
+                        {
+                           order_to_resonances=1;
+                              skip=TRUE;
+                        }
+                    } 
 
 
          else if (strcmp(argv[0], "--luminosity") == 0) {
